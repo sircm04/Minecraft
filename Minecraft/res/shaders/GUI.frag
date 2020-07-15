@@ -10,4 +10,7 @@ uniform vec4 u_color;
 void main()
 {
 	color = texture(image, s_TexCoord) * u_color;
+
+	if (color.a < 0.1)
+		discard;
 }

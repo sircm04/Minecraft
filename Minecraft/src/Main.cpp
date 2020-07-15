@@ -104,6 +104,8 @@ int main(void)
 		{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/GUI.frag") }
 	});
 
+	guiShader->SetVec4("u_color", glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+
 	std::vector<std::string> paths = {
 		"grass_side.png", "grass_top.png", "grass_bottom.png", "stone.png",
 		"cobblestone.png", "bedrock.png", "wood.png", "log_side.png", "log_top.png"
@@ -271,11 +273,8 @@ int main(void)
 				crosshairTexture->Bind();
 				guiShader->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 					{ (startWidth / 2.0f) - 7.5f, (startHeight / 2.0f) - 7.5f, 0.0f }), { 15.0f, 15.0f, 0.0f }));
-				guiShader->SetVec4("u_color", glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 				guiMesh->Render();
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-				guiShader->SetVec4("u_color", glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 			}
 		}
 
