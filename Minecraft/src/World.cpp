@@ -3,8 +3,6 @@
 
 #include "Cow.h"
 
-#include <future>
-
 static const unsigned int radius = 24, outerRadius = radius + 1;
 
 glm::ivec2 previousPlayerChunkPosition = { -1, -1 };

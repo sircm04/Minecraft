@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 enum class BlockType : uint8_t
 {
 	Count = 8,

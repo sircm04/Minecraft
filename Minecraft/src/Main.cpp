@@ -1,12 +1,5 @@
 #include "pch.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "Player.h"
 #include "Mesh.h"
 #include "Shader.h"
@@ -20,9 +13,6 @@
 
 #include "Assets.h"
 #include "Utils.h"
-
-#include <iostream>
-#include <thread>
 
 std::unique_ptr<World> world = std::make_unique<World>();
 std::unique_ptr<Player> player = std::make_unique<Player>(&(*world));

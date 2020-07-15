@@ -1,10 +1,6 @@
 #include "pch.h"
 #include "ArrayTexture.h"
 
-#include "../Dependencies/stb_image/stb_image.h"
-
-#include <unordered_map>
-
 ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width, int height)
 	: m_RendererID(0), m_FilePaths(filePaths), m_LocalBuffer(nullptr), m_Width(width), m_Height(height)
 {

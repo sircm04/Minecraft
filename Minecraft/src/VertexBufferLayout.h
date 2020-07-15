@@ -1,10 +1,5 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <vector>
-
 struct VertexBufferElement
 {
 	unsigned int type, count;

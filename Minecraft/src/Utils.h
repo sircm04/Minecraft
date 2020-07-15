@@ -1,9 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
-
 namespace Utils
 {
 	static std::string ReadFile(const std::string& filePath)

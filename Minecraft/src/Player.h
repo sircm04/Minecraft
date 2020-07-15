@@ -1,15 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "Mob.h"
 #include "World.h"
 #include "Camera.h"
 #include "AABB.h"
-
-#include <optional>
 
 class Player : public Mob
 {
