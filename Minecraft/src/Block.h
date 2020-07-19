@@ -36,7 +36,7 @@ static const std::vector<BlockTypeData> BLOCK_TYPE_DATA =
 
 static const BlockTypeData* GetBlockTypeData(BlockType blockType)
 {
-	return &BLOCK_TYPE_DATA[(unsigned int) blockType];
+	return &BLOCK_TYPE_DATA[(uint8_t) blockType];
 }
 
 struct Block
@@ -45,6 +45,6 @@ struct Block
 
 	const BlockTypeData* GetBlockTypeData() const
 	{
-		return &BLOCK_TYPE_DATA[(unsigned int) m_BlockType];
+		return &BLOCK_TYPE_DATA[(uint8_t) m_BlockType];
 	}
 };
