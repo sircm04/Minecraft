@@ -29,7 +29,6 @@ int main(void)
 		return -1;
 
 	glfwWindowHint(GLFW_SAMPLES, 16);
-	glfwSwapInterval(1);
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -43,6 +42,8 @@ int main(void)
 	}
 
 	glfwMakeContextCurrent(window);
+
+	glfwSwapInterval(1);
 
 	int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 	if (!status)
@@ -182,14 +183,28 @@ int main(void)
 		}
 	}).detach();
 
-	float deltaTime = 0.0f,
-		lastFrame = 0.0f;
+	double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
+	int nbFrames = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = (float) glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+		double currentTime = glfwGetTime();
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
+		fpsTimeAccumulator += deltaTime;
+		nbFrames++;
+		if (fpsTimeAccumulator >= 1.0) {
+			double fps = (double) nbFrames / fpsTimeAccumulator;
+
+			std::stringstream ss;
+			ss << "Minecraft [" << fps << " FPS]";
+
+			glfwSetWindowTitle(window, ss.str().c_str());
+
+			nbFrames = 0;
+			fpsTimeAccumulator = 0;
+		}
 
 		glfwPollEvents();
 
@@ -245,8 +260,8 @@ int main(void)
 				shader->SetMat4("model", glm::translate(matrix, { 0.0f, 0.0f, 0.0f }));
 
 				shader->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
-				shader->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
-				shader->SetVec3("viewPos", player->m_Camera.position);
+				//shader->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
+				//shader->SetVec3("viewPos", player->m_Camera.position);
 
 				world->RenderChunks();
 

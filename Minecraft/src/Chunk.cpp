@@ -63,9 +63,7 @@ int Chunk::GetHighestBlockYPosition(int x, int z)
 {
 	for (int y = Chunk::CHUNK_HEIGHT; y > 0; y--)
 	{
-		Block* block = GetBlock({ x, y, z });
-
-		if (block->GetBlockTypeData()->isSolid)
+		if (GetBlock({ x, y, z })->GetBlockTypeData()->isSolid)
 			return y;
 	}
 

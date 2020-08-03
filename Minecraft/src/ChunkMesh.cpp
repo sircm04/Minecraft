@@ -18,8 +18,6 @@ void ChunkMesh::Unbind()
 
 void ChunkMesh::Generate(Chunk* chunk, World* world, const glm::ivec2& chunkPosition)
 {
-	Timer timer("Chunk Generation");
-
 	m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 	m_Vertices.clear();

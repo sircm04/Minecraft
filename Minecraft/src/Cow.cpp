@@ -8,7 +8,7 @@ Cow::Cow(glm::vec3 position)
 {
 }
 
-void Cow::Update(float deltaTime)
+void Cow::Update(double deltaTime)
 {
 }
 

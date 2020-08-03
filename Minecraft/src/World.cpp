@@ -33,8 +33,6 @@ void World::Update(glm::vec3* playerPosition)
 
 void World::RenderChunks()
 {
-	int i = 0;
-
 	auto it = m_Chunks.begin();
 	while (it != m_Chunks.end())
 	{
@@ -53,12 +51,9 @@ void World::RenderChunks()
 				it->second.m_ChunkMesh.Render();
 			}
 
-			++i;
 			++it;
 		}
 	}
-
-	std::cout << "Iterated Chunks: " << i << ", m_Chunks size: " << m_Chunks.size() << std::endl;
 }
 
 void World::RenderEntities(Shader* shader)
@@ -78,39 +73,48 @@ void World::UpdateChunks(glm::vec3* playerPosition, const glm::ivec2& playerChun
 			it->second.SetRemoved();
 	}
 
-	int xPositiveDistance = outerRadius + playerChunkPosition.x,
-		zPositiveDistance = outerRadius + playerChunkPosition.y,
-		xNegativeDistance = -outerRadius + playerChunkPosition.x,
-		zNegativeDistance = -outerRadius + playerChunkPosition.y;
-
-	for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
+	auto loop = [&](unsigned int radius, auto&& code)
 	{
-		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
+		int xPositiveDistance = radius + playerChunkPosition.x,
+			zPositiveDistance = radius + playerChunkPosition.y,
+			xNegativeDistance = -radius + playerChunkPosition.x,
+			zNegativeDistance = -radius + playerChunkPosition.y;
+
+		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
 		{
-			if (m_QueueState == QueueState::Queued)
-				return;
-
-			const glm::ivec2& chunkPosition = { x, z };
-			const Chunk* chunk = GetChunk(chunkPosition);
-
-			if (!chunk && glm::distance((glm::vec2) chunkPosition, (glm::vec2) playerChunkPosition) < outerRadius)
+			for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 			{
-				Chunk chunk = Chunk();
-				chunk.Generate(&m_Noise, chunkPosition);
-				SetChunk(chunkPosition, std::move(chunk));
+				if (m_QueueState == QueueState::Queued)
+					return;
 
-				Chunk* leftChunk = GetChunk({ chunkPosition.x - 1, chunkPosition.y });
-				Chunk* backChunk = GetChunk({ chunkPosition.x, chunkPosition.y - 1 });
+				const glm::ivec2& chunkPosition = { x, z };
 
-				if (leftChunk && leftChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-					leftChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
-
-				if (backChunk && backChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-					backChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
+				if (glm::distance((glm::vec2) chunkPosition, (glm::vec2) playerChunkPosition) < radius)
+					code(x, z, chunkPosition, playerChunkPosition);
 			}
 		}
-	}
+	};
 
+	loop(outerRadius, [&](int x, int z, glm::vec2 chunkPosition, glm::vec2 playerChunkPosition) {
+		const Chunk* chunk = GetChunk(chunkPosition);
+
+		if (!chunk)
+		{
+			Chunk chunk = Chunk();
+			chunk.Generate(&m_Noise, chunkPosition);
+			SetChunk(chunkPosition, std::move(chunk));
+
+			Chunk* leftChunk = GetChunk({ chunkPosition.x - 1, chunkPosition.y });
+			Chunk* backChunk = GetChunk({ chunkPosition.x, chunkPosition.y - 1 });
+
+			if (leftChunk && leftChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+				leftChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
+
+			if (backChunk && backChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+				backChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
+		}
+	});
+	
 	if (m_FirstLoad)
 	{
 		int y = GetHighestBlockYPosition({ playerPosition->x, playerPosition->z });
@@ -122,26 +126,13 @@ void World::UpdateChunks(glm::vec3* playerPosition, const glm::ivec2& playerChun
 		m_FirstLoad = false;
 	}
 
-	xPositiveDistance = radius + playerChunkPosition.x;
-	zPositiveDistance = radius + playerChunkPosition.y;
-	xNegativeDistance = -radius + playerChunkPosition.x;
-	zNegativeDistance = -radius + playerChunkPosition.y;
+	loop(radius, [&](int x, int z, glm::vec2 chunkPosition, glm::vec2 playerChunkPosition) {
+		Chunk* chunk = GetChunk(chunkPosition);
 
-	for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
-	{
-		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
-		{
-			if (m_QueueState == QueueState::Queued)
-				return;
-
-			const glm::ivec2& chunkPosition = { x, z };
-			Chunk* chunk = GetChunk(chunkPosition);
-
-			if (chunk && glm::distance((glm::vec2) chunkPosition, (glm::vec2) playerChunkPosition) < radius
-				&& *chunk->GetChunkState() == ChunkState::Generated && chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
-				chunk->GenerateMesh(this, chunkPosition);
-		}
-	}
+		if (chunk && *chunk->GetChunkState() == ChunkState::Generated
+			&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
+			chunk->GenerateMesh(this, chunkPosition);
+	});
 }
 
 glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position)
@@ -179,30 +170,17 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	const glm::ivec2& chunkPosition = GetChunkPositionFromBlock({ position.x, position.z });
 	const glm::ivec3& inChunkPosition = GetBlockPositionInChunk(position);
 
-	if (inChunkPosition.x == 0)
+	auto test = [&](bool boolean, glm::ivec2 chunkPos)
 	{
-		glm::ivec2 chunkPos = { chunkPosition.x - 1, chunkPosition.y };
-		chunks.emplace(GetChunk(chunkPos), chunkPos);
-	}
-
-	if (inChunkPosition.z == 0)
-	{
-		glm::ivec2 chunkPos = { chunkPosition.x, chunkPosition.y - 1 };
-		chunks.emplace(GetChunk(chunkPos), chunkPos);
-	}
-
-	if (inChunkPosition.x == Chunk::CHUNK_WIDTH)
-	{
-		glm::ivec2 chunkPos = { chunkPosition.x + 1, chunkPosition.y };
-		chunks.emplace(GetChunk(chunkPos), chunkPos);
-	}
-
-	if (inChunkPosition.z == Chunk::CHUNK_DEPTH)
-	{
-		glm::ivec2 chunkPos = { chunkPosition.x, chunkPosition.y + 1 };
-		chunks.emplace(GetChunk(chunkPos), chunkPos);
-	}
-
+		if (boolean)
+			chunks.emplace(GetChunk(chunkPos), chunkPos);
+	};
+	
+	test(inChunkPosition.x == 0, { chunkPosition.x - 1, chunkPosition.y });
+	test(inChunkPosition.z == 0, { chunkPosition.x, chunkPosition.y - 1 });
+	test(inChunkPosition.x == Chunk::CHUNK_WIDTH, { chunkPosition.x + 1, chunkPosition.y });
+	test(inChunkPosition.z == Chunk::CHUNK_DEPTH, { chunkPosition.x, chunkPosition.y + 1});
+	
 	return chunks;
 }
 

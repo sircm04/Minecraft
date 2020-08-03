@@ -17,8 +17,8 @@ public:
 
 	Player(World* world);
 	
-	void Input(GLFWwindow* window, float deltaTime);
-	void Update(float deltaTime);
+	void Input(GLFWwindow* window, double deltaTime);
+	void Update(double deltaTime);
 	void Render(Shader* shader);
 
 	bool TestCollision(const glm::vec3& position);

@@ -10,6 +10,6 @@ public:
 	Entity(glm::vec3 position);
 	virtual ~Entity() = default;
 
-	virtual void Update(float deltaTime) = 0;
+	virtual void Update(double deltaTime) = 0;
 	virtual void Render(Shader* shader) = 0;
 };

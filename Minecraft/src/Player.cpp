@@ -15,7 +15,7 @@ Player::Player(World* world) // TODO: Synchronize player-entity position
 	m_Camera.position = this->m_Position;
 }
 
-void Player::Input(GLFWwindow* window, float deltaTime)
+void Player::Input(GLFWwindow* window, double deltaTime)
 {
 	cameraSpeed = 9.0f;
 	front = glm::normalize(glm::vec3{ m_Camera.front.x, 0.0f, m_Camera.front.z });
@@ -32,7 +32,7 @@ void Player::Input(GLFWwindow* window, float deltaTime)
 			chunk->SetBlock(m_World->GetBlockPositionInChunk(*blockPosition), { BlockType::Air });
 			chunk->GenerateMesh(m_World, chunkPosition);
 			m_World->RefreshNeighboringChunks(*blockPosition);
-			clickDelay = 800 * deltaTime;
+			clickDelay = 800 * (float) deltaTime;
 		}
 	}
 
@@ -47,7 +47,7 @@ void Player::Input(GLFWwindow* window, float deltaTime)
 			chunk->SetBlock(m_World->GetBlockPositionInChunk(*blockPosition), { blockType });
 			chunk->GenerateMesh(m_World, chunkPosition);
 			m_World->RefreshNeighboringChunks(*blockPosition);
-			clickDelay = 800 * deltaTime;
+			clickDelay = 800 * (float) deltaTime;
 		}
 	}
 
@@ -93,7 +93,7 @@ void Player::Input(GLFWwindow* window, float deltaTime)
 	}
 }
 
-void Player::Update(float deltaTime)
+void Player::Update(double deltaTime)
 {
 }
 
