@@ -7,21 +7,18 @@
 
 class Player : public Mob
 {
-private:
-	World* m_World;
-
 public:
-	static const AABB PLAYER_AABB;
+	inline static const AABB PLAYER_AABB = AABB({ -0.25f, -1.5f, -0.25f }, { 0.25f, 0.25f, 0.25f });
 
 	Camera m_Camera;
+
+	BlockType m_BlockInHand = static_cast<BlockType>(1);
 
 	Player(World* world);
 	
 	void Input(GLFWwindow* window, double deltaTime);
 	void Update(double deltaTime);
-	void Render(Shader* shader);
+	void Render();
 
-	bool TestCollision(const glm::vec3& position);
-
-	std::optional<glm::vec3> GetTargetBlockPosition(int max, bool place = false);
+	std::optional<glm::vec3> GetTargetBlockPosition(int max, bool place = false) const;
 };

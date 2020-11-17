@@ -6,8 +6,8 @@
 class Cow : public Mob
 {
 public:
-	Cow(glm::vec3 position);
+	Cow(World* world, glm::vec3 position);
 	
 	void Update(double deltaTime);
-	void Render(Shader* shader);
+	void Render();
 };

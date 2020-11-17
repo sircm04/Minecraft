@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "World.h"
 
+#include "Player.h"
 #include "Cow.h"
 
 static const unsigned int radius = 24, outerRadius = radius + 1;
@@ -10,13 +11,12 @@ glm::ivec2 previousPlayerChunkPosition = { -1, -1 };
 World::World()
 	: m_QueueState(QueueState::Unqueued)
 {
-	srand(time(0));
-	m_Noise = siv::PerlinNoise(rand() % 1000);
+	m_Noise = siv::PerlinNoise(std::mt19937{});
 }
 
-void World::Update(glm::vec3* playerPosition)
+void World::Update(Player* player, const glm::vec3& playerPosition)
 {
-	const glm::ivec2& playerChunkPosition = GetChunkPositionFromBlock({ floor(playerPosition->x), floor(playerPosition->z) });
+	const glm::ivec2& playerChunkPosition = GetChunkPositionFromBlock(floor(glm::vec2 { playerPosition.x, playerPosition.z }));
 
 	if (playerChunkPosition != previousPlayerChunkPosition)
 		m_QueueState = QueueState::Queued;
@@ -27,7 +27,7 @@ void World::Update(glm::vec3* playerPosition)
 	{
 		m_QueueState = QueueState::Unqueued;
 
-		UpdateChunks(playerPosition, playerChunkPosition);
+		UpdateChunks(player, playerChunkPosition);
 	}
 }
 
@@ -56,20 +56,20 @@ void World::RenderChunks()
 	}
 }
 
-void World::RenderEntities(Shader* shader)
+void World::RenderEntities()
 {
 	for (auto it = m_Entities.begin(); it != m_Entities.end(); ++it)
-		(*it)->Render(shader);
+		(*it)->Render();
 }
 
-void World::UpdateChunks(glm::vec3* playerPosition, const glm::ivec2& playerChunkPosition)
+void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
 	{
 		if (m_QueueState == QueueState::Queued)
 			return;
 
-		if (glm::distance((glm::vec2) it->first, (glm::vec2) playerChunkPosition) >= outerRadius)
+		if (ceil(glm::distance(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= outerRadius)
 			it->second.SetRemoved();
 	}
 
@@ -89,18 +89,16 @@ void World::UpdateChunks(glm::vec3* playerPosition, const glm::ivec2& playerChun
 
 				const glm::ivec2& chunkPosition = { x, z };
 
-				if (glm::distance((glm::vec2) chunkPosition, (glm::vec2) playerChunkPosition) < radius)
+				if (ceil(glm::distance(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius)
 					code(x, z, chunkPosition, playerChunkPosition);
 			}
 		}
 	};
 
-	loop(outerRadius, [&](int x, int z, glm::vec2 chunkPosition, glm::vec2 playerChunkPosition) {
-		const Chunk* chunk = GetChunk(chunkPosition);
-
-		if (!chunk)
+	loop(outerRadius, [&](int x, int z, const glm::ivec2& chunkPosition, const glm::ivec2& playerChunkPosition) {
+		if (!GetChunk(chunkPosition))
 		{
-			Chunk chunk = Chunk();
+			Chunk chunk;
 			chunk.Generate(&m_Noise, chunkPosition);
 			SetChunk(chunkPosition, std::move(chunk));
 
@@ -117,16 +115,16 @@ void World::UpdateChunks(glm::vec3* playerPosition, const glm::ivec2& playerChun
 	
 	if (m_FirstLoad)
 	{
-		int y = GetHighestBlockYPosition({ playerPosition->x, playerPosition->z });
+		int y = GetHighestBlockYPosition(floor(glm::vec2 { player->m_Position.x, player->m_Position.z }));
 		if (y != -1)
 		{
-			playerPosition->y = (y + 2.5f);
-			AddEntity<Cow>(Cow(*playerPosition));
+			player->m_Position.y = (y + 2.5f);
+			AddEntity<Cow>(Cow(this, player->m_Position));
 		}
 		m_FirstLoad = false;
 	}
 
-	loop(radius, [&](int x, int z, glm::vec2 chunkPosition, glm::vec2 playerChunkPosition) {
+	loop(radius, [&](int x, int z, const glm::ivec2& chunkPosition, const glm::ivec2& playerChunkPosition) {
 		Chunk* chunk = GetChunk(chunkPosition);
 
 		if (chunk && *chunk->GetChunkState() == ChunkState::Generated
@@ -135,7 +133,7 @@ void World::UpdateChunks(glm::vec3* playerPosition, const glm::ivec2& playerChun
 	});
 }
 
-glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position)
+glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position) const
 {
 	return {
 		(position.x >> Chunk::CHUNK_X_SHIFT),
@@ -143,7 +141,7 @@ glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position)
 	};
 }
 
-glm::ivec3 World::GetBlockPositionInChunk(const glm::ivec3& position)
+glm::ivec3 World::GetBlockPositionInChunk(const glm::ivec3& position) const
 {
 	return {
 		(position.x & Chunk::CHUNK_X_MASK),
@@ -158,6 +156,12 @@ void World::SetChunk(const glm::ivec2& position, Chunk&& chunk)
 }
 
 Chunk* World::GetChunk(const glm::ivec2& position)
+{
+	auto found = m_Chunks.find(position);
+	return (found == m_Chunks.end()) ? nullptr : &found->second;
+}
+
+const Chunk* World::GetChunk(const glm::ivec2& position) const
 {
 	auto found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
@@ -211,17 +215,27 @@ Block* World::GetBlock(const glm::ivec3& position)
 	return nullptr;
 }
 
-int World::GetHighestBlockYPosition(const glm::ivec2& position)
+const Block* World::GetBlock(const glm::ivec3& position) const
 {
-	Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.y }));
+	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
+
+	if (chunk)
+		return chunk->GetBlock(GetBlockPositionInChunk(position));
+
+	return nullptr;
+}
+
+int World::GetHighestBlockYPosition(const glm::ivec2& position) const
+{
+	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.y }));
 
 	if (chunk)
 	{
 		for (int y = Chunk::CHUNK_HEIGHT; y > 0; y--)
 		{
-			Block* block = chunk->GetBlock({ position.x, y, position.y });
+			const Block* block = chunk->GetBlock({ position.x, y, position.y });
 
-			if (block && block->GetBlockTypeData()->isSolid)
+			if (block && block->GetBlockTypeData().isSolid)
 				return y;
 		}
 	}
@@ -229,7 +243,7 @@ int World::GetHighestBlockYPosition(const glm::ivec2& position)
 	return -1;
 }
 
-std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position, const glm::vec3& direction, int max, bool place)
+std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position, const glm::vec3& direction, int max, bool place) const
 {
 	glm::ivec3 blockPos;
 	glm::vec3 sign;
@@ -243,13 +257,13 @@ std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position, cons
 
 		position += direction * (t + 0.001f);
 
-		Block* block = GetBlock(blockPos = {
-			floor(position.x),
-			floor(position.y),
-			floor(position.z)
-		});
+		const Block* block = GetBlock(blockPos = floor(glm::vec3 {
+			position.x,
+			position.y,
+			position.z
+		}));
 
-		if (block && block->GetBlockTypeData()->isSolid)
+		if (block && block->GetBlockTypeData().isSolid)
 		{
 			if (place)
 			{
@@ -261,11 +275,11 @@ std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position, cons
 
 				position += normal;
 
-				blockPos = {
-					floor(position.x),
-					floor(position.y),
-					floor(position.z)
-				};
+				blockPos = floor(glm::vec3 {
+					position.x,
+					position.y,
+					position.z
+				});
 			}
 
 			return blockPos;

@@ -27,3 +27,22 @@ bool AABB::Intersects(const AABB& aabb, const glm::vec3& positionOne, const glm:
 		&& (oneMin.y <= twoMax.y && oneMax.y >= twoMin.y)
 		&& (oneMin.z <= twoMax.z && oneMax.z >= twoMin.z);
 }
+
+bool AABB::IntersectsBlocks(const World* world, const glm::vec3& position) const
+{
+	glm::ivec3 blockMin = floor(GetRelativeMinimum(position)),
+		blockMax = floor(GetRelativeMaximum(position));
+
+	for (int x = blockMin.x; x <= blockMax.x; ++x) {
+		for (int y = blockMin.y; y <= blockMax.y; ++y) {
+			for (int z = blockMin.z; z <= blockMax.z; ++z) {
+				const Block* block = world->GetBlock({ x, y, z });
+
+				if (block && block->GetBlockTypeData().isSolid)
+					return true;
+			}
+		}
+	}
+
+	return false;
+}

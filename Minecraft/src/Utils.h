@@ -2,7 +2,7 @@
 
 namespace Utils
 {
-	static std::string ReadFile(const std::string& filePath)
+	static const std::string ReadFile(const std::string& filePath)
 	{
 		std::ifstream stream(filePath);
 		std::string string, line;

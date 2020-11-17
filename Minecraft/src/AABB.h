@@ -1,5 +1,8 @@
 #pragma once
 
+#include "World.h"
+#include "Block.h"
+
 class AABB
 {
 private:
@@ -10,6 +13,7 @@ public:
 	
 	bool IsPointInsideAABB(const glm::vec3& position, const glm::vec3& point) const;
 	bool Intersects(const AABB& aabb, const glm::vec3& positionOne, const glm::vec3& positionTwo) const;
+	bool IntersectsBlocks(const World* world, const glm::vec3& position) const;
 
 	inline glm::vec3 GetMinimum() const { return m_Min; }
 	inline glm::vec3 GetMaximum() const { return m_Max; }

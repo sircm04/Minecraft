@@ -25,19 +25,12 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width,
 		(GLsizei) filePaths.size()
 	);
 
-	std::unordered_map<std::string, unsigned char*> m_ImageCache;
-
 	unsigned char* image;
 	int w, h, BPP;
 	for (int i = 0; i < filePaths.size(); ++i) {
 		std::string filePath = filePaths[i];
 
-		if (m_ImageCache.find(filePath) != m_ImageCache.end())
-			image = m_ImageCache[filePath];
-		else
-			image = stbi_load(filePath.c_str(), &w, &h, &BPP, 4);
-
-		m_ImageCache[filePath] = image;
+		image = stbi_load(filePath.c_str(), &w, &h, &BPP, 4);
 
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,
@@ -47,8 +40,6 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width,
 			GL_UNSIGNED_BYTE,
 			image);
 	}
-
-	m_ImageCache.clear();
 
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
