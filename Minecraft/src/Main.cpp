@@ -3,23 +3,14 @@
 #include "Player.h"
 #include "Mesh.h"
 #include "Shader.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "ArrayTexture.h"
 #include "Texture.h"
 #include "World.h"
 #include "Chunk.h"
 
 #include "Assets.h"
-#include "Utils.h"
 
-std::unique_ptr<World> world = std::make_unique<World>();
-std::unique_ptr<Player> player = std::make_unique<Player>(&(*world));
-
-bool firstMouse = true;
-float lastX = 0, lastY = 0;
-float pitch, yaw = -90;
+World world = World();
+Player player = Player(&world);
 
 int main(void)
 {
@@ -49,6 +40,8 @@ int main(void)
 	if (!status)
 		return -1;
 
+	std::cout << glGetString(GL_VERSION) << std::endl;
+
 	glEnable(GL_MULTISAMPLE);
 
 	glEnable(GL_DEPTH_TEST);
@@ -66,8 +59,6 @@ int main(void)
 	if (glfwRawMouseMotionSupported())
 		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-	std::cout << glGetString(GL_VERSION) << std::endl;
-
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height)
 	{
 		if (width == 0 || height == 0) return;
@@ -75,59 +66,15 @@ int main(void)
 		glViewport(0, 0, width, height);
 	});
 
-	std::unique_ptr<Shader> shader, entityShader, guiShader;
-	VertexBufferLayout guiLayout;
-	
-	guiLayout.Push<float>(2);
-	guiLayout.Push<float>(2);
-
-	std::unique_ptr<Mesh> guiMesh = std::make_unique<Mesh>(std::vector<float> {
-		0.0f, 1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		1.0f, 1.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 1.0f, 1.0f
-	}, std::vector<unsigned int> { 0, 1, 2, 3, 4, 5 }, guiLayout);
-
-	shader = std::make_unique<Shader>(std::vector<ShaderEntry> {
-		{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Lighting.vert") },
-		{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Lighting.frag") }
-	});
-
-	entityShader = std::make_unique<Shader>(std::vector<ShaderEntry> {
-		{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Basic2dTex.vert") },
-		{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Basic2dTex.frag") }
-	});
-
-	guiShader = std::make_unique<Shader>(std::vector<ShaderEntry> {
-		{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/GUI.vert") },
-		{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/GUI.frag") }
-	});
-
-	guiShader->SetVec4("u_color", glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
-
-	std::vector<std::string> paths = {
-		"grass_side.png", "grass_top.png", "grass_bottom.png", "stone.png",
-		"cobblestone.png", "bedrock.png", "wood.png", "log_side.png", "log_top.png"
-	};
-
-	for (int i = 0; i < paths.size(); i++)
-		paths[i] = ("res/images/" + paths[i]);
-
-	std::unique_ptr<ArrayTexture> blockArrayTexture = std::make_unique<ArrayTexture>(paths, 16, 16);
-	std::unique_ptr<Texture> heartTexture = std::make_unique<Texture>("res/images/heart.png");
-	std::unique_ptr<Texture> dirtTexture = std::make_unique<Texture>("res/images/grass_bottom.png");
-	std::unique_ptr<Texture> crosshairTexture = std::make_unique<Texture>("res/images/crosshair.png");
-
 	Assets::InitializeAssets();
 
-	player->m_Camera.front.z = -1.0f;
+	player.m_Camera.front.z = -1.0f;
 
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos)
 	{
-		if (world->m_FirstLoad)
-			return;
+		static bool firstMouse = true;
+		static float lastX = 0, lastY = 0;
+		static float pitch, yaw = -90;
 
 		if (firstMouse)
 		{
@@ -153,11 +100,11 @@ int main(void)
 		if (pitch < -89.0f)
 			pitch = -89.0f;
 
-		glm::vec3 front;
-		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		front.y = sin(glm::radians(pitch));
-		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-		player->m_Camera.front = glm::normalize(front);
+		player.m_Camera.front = glm::normalize(glm::vec3 {
+			cos(glm::radians(yaw))* cos(glm::radians(pitch)),
+			sin(glm::radians(pitch)),
+			sin(glm::radians(yaw))* cos(glm::radians(pitch))
+		});
 	});
 
 	int width, height;
@@ -168,23 +115,18 @@ int main(void)
 	glm::mat4 guiProjection = glm::ortho(0.0f, startWidth, startHeight, 0.0f, -1.0f, 1.0f);
 	float dirtSize = 57.07f;
 
-	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);
-
-	std::unordered_map<glm::ivec2, Chunk> chunks;
-
-	srand(time(0));
-	siv::PerlinNoise noise = siv::PerlinNoise(rand() % 1000 + 1);
-
-	std::thread([&]()
+	std::thread([window]()
 	{
 		while (!glfwWindowShouldClose(window))
 		{
-			world->Update(&player->m_Camera.position);
+			world.Update(&player, player.m_Position);
 		}
 	}).detach();
 
 	double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
 	int nbFrames = 0;
+
+	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -210,85 +152,100 @@ int main(void)
 
 		glfwGetWindowSize(window, &width, &height);
 
-		player->Input(window, deltaTime);
+		player.Input(window, deltaTime);
 
 		if (width > 0 && height > 0)
 		{
-			if (world->m_FirstLoad)
+			if (world.m_FirstLoad)
 			{
 				glClear(GL_DEPTH_BUFFER_BIT);
 
-				guiShader->Bind();
-				guiMesh->Bind();
-				guiShader->SetMat4("projection", guiProjection);
+				Assets::GUI_SHADER->Bind();
+				Assets::GUI_MESH->Bind();
+				Assets::GUI_SHADER->SetMat4("projection", guiProjection);
 
-				dirtTexture->Bind();
+				Assets::DIRT_TEXTURE->Bind();
 
 				for (int x = 0; x < ((width / dirtSize) + 1); x++)
 				{
 					for (int y = 0; y < ((height / dirtSize) + 1); y++)
 					{
-						guiShader->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { x * dirtSize, y * dirtSize, 0.0f }), { dirtSize, dirtSize, 0.0f }));
-						guiShader->SetVec4("u_color", glm::vec4 { 0.4f, 0.4f, 0.4f, 1.0f });
-						guiMesh->Render();
+						Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { x * dirtSize, y * dirtSize, 0.0f }), { dirtSize, dirtSize, 0.0f }));
+						Assets::GUI_SHADER->SetVec4("u_color", glm::vec4 { 0.4f, 0.4f, 0.4f, 1.0f });
+						Assets::GUI_MESH->Render();
 					}
 				}
 
-				guiShader->SetVec4("u_color", glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
+				Assets::GUI_SHADER->SetVec4("u_color", glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 			}
 			else
 			{
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				shader->Bind();
-				blockArrayTexture->Bind();
-
-				glm::mat4 view = glm::lookAt(player->m_Camera.position,
-					player->m_Camera.position + player->m_Camera.front, player->m_Camera.up);
+				glm::mat4 view = glm::lookAt(player.m_Camera.position,
+					player.m_Camera.position + player.m_Camera.front, player.m_Camera.up);
 				glm::mat4 projection = glm::perspective(glm::radians(60.0f), static_cast<GLfloat>(width) / static_cast<GLfloat>(height), 0.1f, 5000.0f);
 
-				glm::mat4 matrix = glm::mat4(1.0f);
-				/*matrix = glm::rotate_slow(glm::translate(matrix,
+				Assets::SUN_SHADER->Bind();
+
+				Assets::SUN_SHADER->SetMat4("view", view);
+				Assets::SUN_SHADER->SetMat4("projection", projection);
+
+				float sunSpeed = 0.005;
+
+				glm::mat4 matrix = glm::translate(glm::mat4(1.0f), player.m_Camera.position - glm::vec3 { 0.5f, 0.5f, 0.5f });
+
+				matrix = glm::rotate(glm::translate(matrix,
 				{
-					2.0f * sin(glfwGetTime()),
-					-0.3f,
-					1.5f * cos(glfwGetTime())
-				}), glm::radians((float)glfwGetTime() * 50.0f), { 1.0f, 1.0f, 1.0f });*/
+					0,
+					10.0f * sin(glfwGetTime() * sunSpeed),
+					7.5f * cos(glfwGetTime() * sunSpeed)
+				}), glm::radians((float) glfwGetTime() * (sunSpeed / 0.017f)), { -1.0f, 0.0f, 0.0f });
 
-				shader->SetMat4("view", view);
-				shader->SetMat4("projection", projection);
-				shader->SetMat4("model", glm::translate(matrix, { 0.0f, 0.0f, 0.0f }));
-
-				shader->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
-				//shader->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
-				//shader->SetVec3("viewPos", player->m_Camera.position);
-
-				world->RenderChunks();
-
-				entityShader->Bind();
-				entityShader->SetMat4("view", view);
-				entityShader->SetMat4("projection", projection);
-
-				world->RenderEntities(&(*entityShader));
+				Assets::SUN_SHADER->SetMat4("model", matrix);
+				
+				Assets::SUN_TEXTURE->Bind();
+				Assets::SUN_MESH->Render();
 
 				glClear(GL_DEPTH_BUFFER_BIT);
 
-				guiShader->Bind();
-				guiMesh->Bind();
-				guiShader->SetMat4("projection", guiProjection);
+				Assets::SHADER->Bind();
+				Assets::BLOCK_ARRAY_TEXTURE->Bind();
 
-				heartTexture->Bind();
-				for (int i = 0; i < player->m_Health; i++)
+				Assets::SHADER->SetMat4("view", view);
+				Assets::SHADER->SetMat4("projection", projection);
+				Assets::SHADER->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
+
+				Assets::SHADER->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
+				//Assets::SHADER->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
+				//Assets::SHADER->SetVec3("viewPos", player.m_Camera.position);
+
+				world.RenderChunks();
+
+				Assets::ENTITY_SHADER->Bind();
+				Assets::ENTITY_SHADER->SetMat4("view", view);
+				Assets::ENTITY_SHADER->SetMat4("projection", projection);
+
+				world.RenderEntities();
+
+				glClear(GL_DEPTH_BUFFER_BIT);
+
+				Assets::GUI_SHADER->Bind();
+				Assets::GUI_MESH->Bind();
+				Assets::GUI_SHADER->SetMat4("projection", guiProjection);
+
+				Assets::HEART_TEXTURE->Bind();
+				for (int i = 0; i < player.m_Health; i++)
 				{
-					guiShader->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { 12.0f + (i * 13.33f), 455.0f, 0.0f }), { 15.0f, 15.0f, 0.0f }));
-					guiMesh->Render();
+					Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { 12.0f + (i * 13.33f), 455.0f, 0.0f }), { 15.0f, 15.0f, 0.0f }));
+					Assets::GUI_MESH->Render();
 				}
 
 				glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
-				crosshairTexture->Bind();
-				guiShader->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+				Assets::CROSSHAIR_TEXTURE->Bind();
+				Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 					{ (startWidth / 2.0f) - 7.5f, (startHeight / 2.0f) - 7.5f, 0.0f }), { 15.0f, 15.0f, 0.0f }));
-				guiMesh->Render();
+				Assets::GUI_MESH->Render();
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			}
 		}

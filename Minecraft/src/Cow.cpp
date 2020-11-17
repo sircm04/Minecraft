@@ -3,8 +3,8 @@
 
 #include "Assets.h"
 
-Cow::Cow(glm::vec3 position)
-	: Mob(position, 9, 9)
+Cow::Cow(World* world, glm::vec3 position)
+	: Mob(world, position)
 {
 }
 
@@ -12,9 +12,9 @@ void Cow::Update(double deltaTime)
 {
 }
 
-void Cow::Render(Shader* shader)
+void Cow::Render()
 {
-	shader->SetMat4("model", glm::translate(glm::mat4(1.0f), m_Position));
+	Assets::ENTITY_SHADER->SetMat4("model", glm::translate(glm::mat4(1.0f), m_Position));
 	Assets::COW_TEXTURE->Bind();
 	Assets::COW_MESH->Bind();
 	Assets::COW_MESH->Render();

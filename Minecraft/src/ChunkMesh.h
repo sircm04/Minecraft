@@ -78,7 +78,7 @@ public:
 	void Bind();
 	void Unbind();
 
-	void Generate(Chunk* chunk, World* world, const glm::ivec2& chunkPosition);
+	void Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition);
 	void AddBlockFace(const glm::vec3& position, const std::vector<float>& vertices, float face);
 	void BufferMesh();
 

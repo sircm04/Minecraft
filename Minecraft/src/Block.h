@@ -34,17 +34,11 @@ static const std::vector<BlockTypeData> BLOCK_TYPE_DATA =
 	{ std::vector<float> { 7.0f, 7.0f, 7.0f, 7.0f, 8.0f, 8.0f } }, // Log
 };
 
-static const BlockTypeData* GetBlockTypeData(BlockType blockType)
-{
-	return &BLOCK_TYPE_DATA[(uint8_t) blockType];
-}
+static const BlockTypeData& GetBlockTypeData(BlockType blockType);
 
 struct Block
 {
 	BlockType m_BlockType;
 
-	const BlockTypeData* GetBlockTypeData() const
-	{
-		return &BLOCK_TYPE_DATA[(uint8_t) m_BlockType];
-	}
+	const BlockTypeData& GetBlockTypeData() const;
 };
