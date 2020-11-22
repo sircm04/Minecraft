@@ -8,7 +8,7 @@ Player::Player(World* world)
 
 void Player::Input(GLFWwindow* window, double deltaTime)
 {
-	static uint16_t clickDelay = 0;
+	static uint16_t clickDelay[2];
 	static uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(9));
 	static glm::vec3 front, newPosition;
 
@@ -16,7 +16,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z });
 	newPosition = m_Position;
 	
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && clickDelay == 0)
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && clickDelay[0] == 0)
 	{
 		std::optional<glm::ivec3> blockPosition = GetTargetBlockPosition(10);
 
@@ -27,11 +27,11 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 			chunk->SetBlock(m_World->GetBlockPositionInChunk(*blockPosition), { BlockType::Air });
 			chunk->GenerateMesh(m_World, chunkPosition);
 			m_World->RefreshNeighboringChunks(*blockPosition);
-			clickDelay = 800 * (float) deltaTime;
+			clickDelay[0] = 800 * deltaTime;
 		}
 	}
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && clickDelay == 0)
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && clickDelay[0] == 0)
 	{
 		std::optional<glm::ivec3> blockPosition = GetTargetBlockPosition(10, true);
 
@@ -42,19 +42,28 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 			chunk->SetBlock(m_World->GetBlockPositionInChunk(*blockPosition), { m_BlockInHand });
 			chunk->GenerateMesh(m_World, chunkPosition);
 			m_World->RefreshNeighboringChunks(*blockPosition);
-			clickDelay = 800 * (float) deltaTime;
+			clickDelay[0] = 800 * deltaTime;
 		}
 	}
 
-	if (clickDelay > 0)
-		clickDelay--;
-	if (clickDelay < 0)
-		clickDelay = 0;
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && clickDelay[1] == 0)
+	{
+		m_IsFlying = !m_IsFlying;
+		clickDelay[1] = 800 * deltaTime;
+	}
+
+	for (uint8_t i = 0; i < sizeof(clickDelay); ++i)
+	{
+		if (clickDelay[i] > 0)
+			clickDelay[i]--;
+		if (clickDelay[i] < 0)
+			clickDelay[i] = 0;
+	}
 
 	for (int i = 1; i < maxBlockTypeKeys; ++i)
 	{
 		if (glfwGetKey(window, GLFW_KEY_0 + i) == GLFW_PRESS)
-			m_BlockInHand = (BlockType) i;
+			m_BlockInHand = static_cast<BlockType>(i);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
@@ -92,6 +101,24 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 
 void Player::Update(double deltaTime)
 {
+	if (!m_IsFlying)
+	{
+		glm::vec3 newPosition = { m_Position.x, m_Position.y - (20.0f * deltaTime), m_Position.z };
+
+		if (newPosition != m_Position)
+		{
+			if (!PLAYER_AABB.IntersectsBlocks(m_World, { newPosition.x, m_Position.y, m_Position.z }))
+				m_Position.x = newPosition.x;
+
+			if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y, newPosition.z }))
+				m_Position.z = newPosition.z;
+
+			if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, newPosition.y, m_Position.z }))
+				m_Position.y = newPosition.y;
+		}
+	}
+
+	m_Camera.position = m_Position;
 }
 
 void Player::Render()

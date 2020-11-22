@@ -3,8 +3,14 @@
 
 #include "World.h"
 
+Chunk::Chunk()
+	: m_MutexLock(std::make_shared<std::mutex>()), m_ChunkMesh(m_MutexLock)
+{
+}
+
 void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
 {
+	m_MutexLock->lock();
 	m_ChunkState = ChunkState::Ungenerated;
 
 	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
@@ -16,7 +22,8 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
 	{
 		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 		{
-			double random = (noise->noise0_1((double) (x + realChunkX) / (Chunk::CHUNK_WIDTH / 0.4f), (double) (z + realChunkZ) / (Chunk::CHUNK_DEPTH / 0.4f)) * 50);
+			double random = (noise->noise0_1((double) (x + realChunkX) / (Chunk::CHUNK_WIDTH / 0.4f),
+				(double) (z + realChunkZ) / (Chunk::CHUNK_DEPTH / 0.4f)) * 50);
 			uint8_t grassHeight = (Chunk::GRASS_HEIGHT / 2) + random, dirtHeight = (grassHeight - 3);
 
 			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
@@ -36,9 +43,10 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
 	}
 
 	m_ChunkState = ChunkState::Generated;
+	m_MutexLock->unlock();
 }
 
-void Chunk::GenerateMesh(World* world, const glm::ivec2& chunkPosition)
+void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition)
 {
 	m_ChunkMesh.Generate(this, world, chunkPosition);
 }

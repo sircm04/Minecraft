@@ -12,6 +12,7 @@ public:
 
 	Camera m_Camera;
 
+	bool m_IsFlying = true;
 	BlockType m_BlockInHand = static_cast<BlockType>(1);
 
 	Player(World* world);

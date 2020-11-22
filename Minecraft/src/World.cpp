@@ -9,12 +9,12 @@ static const unsigned int radius = 24, outerRadius = radius + 1;
 glm::ivec2 previousPlayerChunkPosition = { -1, -1 };
 
 World::World()
-	: m_QueueState(QueueState::Unqueued)
+	: m_MutexLock(std::make_unique<std::mutex>()), m_QueueState(QueueState::Unqueued)
 {
 	m_Noise = siv::PerlinNoise(std::mt19937{});
 }
 
-void World::Update(Player* player, const glm::vec3& playerPosition)
+void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
 {
 	const glm::ivec2& playerChunkPosition = GetChunkPositionFromBlock(floor(glm::vec2 { playerPosition.x, playerPosition.z }));
 
@@ -29,6 +29,8 @@ void World::Update(Player* player, const glm::vec3& playerPosition)
 
 		UpdateChunks(player, playerChunkPosition);
 	}
+
+	UpdateEntities(deltaTime);
 }
 
 void World::RenderChunks()
@@ -64,6 +66,7 @@ void World::RenderEntities()
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
+	m_MutexLock->lock();
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
 	{
 		if (m_QueueState == QueueState::Queued)
@@ -75,6 +78,8 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 	auto loop = [&](unsigned int radius, auto&& code)
 	{
+		std::vector<std::future<void>> futures;
+
 		int xPositiveDistance = radius + playerChunkPosition.x,
 			zPositiveDistance = radius + playerChunkPosition.y,
 			xNegativeDistance = -radius + playerChunkPosition.x,
@@ -85,14 +90,21 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 			{
 				if (m_QueueState == QueueState::Queued)
+				{
+					for (auto&& future : futures)
+						future.wait();
 					return;
+				}
 
 				const glm::ivec2& chunkPosition = { x, z };
 
 				if (ceil(glm::distance(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius)
-					code(x, z, chunkPosition, playerChunkPosition);
+					futures.push_back(std::async(std::launch::async, code, x, z, chunkPosition, playerChunkPosition));
 			}
 		}
+
+		for (auto&& future : futures)
+			future.wait();
 	};
 
 	loop(outerRadius, [&](int x, int z, const glm::ivec2& chunkPosition, const glm::ivec2& playerChunkPosition) {
@@ -102,14 +114,14 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			chunk.Generate(&m_Noise, chunkPosition);
 			SetChunk(chunkPosition, std::move(chunk));
 
-			Chunk* leftChunk = GetChunk({ chunkPosition.x - 1, chunkPosition.y });
+			/*Chunk* leftChunk = GetChunk({ chunkPosition.x - 1, chunkPosition.y });
 			Chunk* backChunk = GetChunk({ chunkPosition.x, chunkPosition.y - 1 });
 
 			if (leftChunk && leftChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
 				leftChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 			if (backChunk && backChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-				backChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
+				backChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;*/
 		}
 	});
 	
@@ -131,6 +143,13 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
 			chunk->GenerateMesh(this, chunkPosition);
 	});
+	m_MutexLock->unlock();
+}
+
+void World::UpdateEntities(double deltaTime)
+{
+	for (auto it = m_Entities.begin(); it != m_Entities.end(); ++it)
+		(*it)->Update(deltaTime);
 }
 
 glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position) const

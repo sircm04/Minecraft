@@ -101,9 +101,9 @@ int main(void)
 			pitch = -89.0f;
 
 		player.m_Camera.front = glm::normalize(glm::vec3 {
-			cos(glm::radians(yaw))* cos(glm::radians(pitch)),
+			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 			sin(glm::radians(pitch)),
-			sin(glm::radians(yaw))* cos(glm::radians(pitch))
+			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
 		});
 	});
 
@@ -114,22 +114,30 @@ int main(void)
 
 	glm::mat4 guiProjection = glm::ortho(0.0f, startWidth, startHeight, 0.0f, -1.0f, 1.0f);
 	float dirtSize = 57.07f;
-
+	
 	std::thread([window]()
 	{
 		while (!glfwWindowShouldClose(window))
 		{
-			world.Update(&player, player.m_Position);
+			static double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
+			static int nbFrames = 0;
+
+			double currentTime = glfwGetTime();
+			deltaTime = currentTime - lastTime;
+			lastTime = currentTime;
+
+			world.Update(deltaTime, &player, player.m_Position);
+			player.Update(deltaTime);
 		}
 	}).detach();
-
-	double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
-	int nbFrames = 0;
 
 	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);
 
 	while (!glfwWindowShouldClose(window))
 	{
+		static double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
+		static int nbFrames = 0;
+
 		double currentTime = glfwGetTime();
 		deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
@@ -191,7 +199,7 @@ int main(void)
 				Assets::SUN_SHADER->SetMat4("view", view);
 				Assets::SUN_SHADER->SetMat4("projection", projection);
 
-				float sunSpeed = 0.005;
+				float sunSpeed = 0.005f;
 
 				glm::mat4 matrix = glm::translate(glm::mat4(1.0f), player.m_Camera.position - glm::vec3 { 0.5f, 0.5f, 0.5f });
 

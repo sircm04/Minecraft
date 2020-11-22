@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "ChunkMesh.h"
 
 class World;
@@ -20,8 +22,10 @@ private:
 
 	ChunkState m_ChunkState = ChunkState::Ungenerated;
 
+	std::shared_ptr<std::mutex> m_MutexLock;
+
 public:
-	static const uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16,
+	static constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16,
 
 		CHUNK_WIDTH_M1 = (Chunk::CHUNK_WIDTH - 1), CHUNK_DEPTH_M1 = (Chunk::CHUNK_DEPTH - 1),
 
@@ -32,7 +36,7 @@ public:
 
 	ChunkMesh m_ChunkMesh;
 
-	Chunk() = default;
+	Chunk();
 	~Chunk() = default;
 	Chunk(Chunk&&) = default;
 	Chunk(const Chunk&) = delete;
@@ -40,7 +44,7 @@ public:
 
 	void Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition);
 
-	void GenerateMesh(World* world, const glm::ivec2& chunkPosition);
+	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition);
 
 	static bool IsInBounds(const glm::ivec3& position);
 

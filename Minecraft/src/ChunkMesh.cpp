@@ -6,6 +6,11 @@
 
 #include "Timer.h"
 
+ChunkMesh::ChunkMesh(std::shared_ptr<std::mutex> mutexLock)
+	: m_MutexLock(mutexLock)
+{
+}
+
 void ChunkMesh::Bind()
 {
 	m_Mesh->Bind();
@@ -18,6 +23,7 @@ void ChunkMesh::Unbind()
 
 void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition)
 {
+	m_MutexLock->lock();
 	m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 	m_Vertices.clear();
@@ -84,6 +90,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	}
 
 	m_ChunkMeshState = ChunkMeshState::Generated;
+	m_MutexLock->unlock();
 }
 
 void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::vector<float>& vertices, float face)
@@ -111,6 +118,7 @@ void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::vector<float>
 
 void ChunkMesh::BufferMesh()
 {
+	m_MutexLock->lock();
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
 	layout.Push<float>(3);
@@ -125,6 +133,7 @@ void ChunkMesh::BufferMesh()
 	m_indexIndex = 0;
 
 	m_ChunkMeshState = ChunkMeshState::Complete;
+	m_MutexLock->unlock();
 }
 
 void ChunkMesh::Render()
