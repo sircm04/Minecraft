@@ -52,12 +52,11 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		clickDelay[1] = 800 * deltaTime;
 	}
 
-	for (uint8_t i = 0; i < sizeof(clickDelay); ++i)
-	{
-		if (clickDelay[i] > 0)
-			clickDelay[i]--;
-		if (clickDelay[i] < 0)
-			clickDelay[i] = 0;
+	for (auto& delay : clickDelay) {
+		if (delay > 0)
+			delay--;
+		if (delay < 0)
+			delay = 0;
 	}
 
 	for (int i = 1; i < maxBlockTypeKeys; ++i)

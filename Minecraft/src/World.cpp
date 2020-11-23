@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "Cow.h"
 
-static const unsigned int radius = 24, outerRadius = radius + 1;
+static constexpr unsigned int radius = 24, outerRadius = radius + 1;
 
 glm::ivec2 previousPlayerChunkPosition = { -1, -1 };
 
@@ -33,7 +33,7 @@ void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosi
 	UpdateEntities(deltaTime);
 }
 
-void World::RenderChunks()
+void World::RenderChunks(const ViewFrustum& frustum, const glm::vec3& playerPosition)
 {
 	auto it = m_Chunks.begin();
 	while (it != m_Chunks.end())
@@ -50,7 +50,7 @@ void World::RenderChunks()
 			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
 			{
 				it->second.m_ChunkMesh.Bind();
-				it->second.m_ChunkMesh.Render();
+				it->second.m_ChunkMesh.Render(frustum, it->first, playerPosition);
 			}
 
 			++it;
@@ -66,7 +66,6 @@ void World::RenderEntities()
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
-	m_MutexLock->lock();
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
 	{
 		if (m_QueueState == QueueState::Queued)
@@ -143,7 +142,6 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
 			chunk->GenerateMesh(this, chunkPosition);
 	});
-	m_MutexLock->unlock();
 }
 
 void World::UpdateEntities(double deltaTime)
@@ -171,6 +169,7 @@ glm::ivec3 World::GetBlockPositionInChunk(const glm::ivec3& position) const
 
 void World::SetChunk(const glm::ivec2& position, Chunk&& chunk)
 {
+	std::unique_lock lock(*m_MutexLock);
 	m_Chunks.emplace(position, std::move(chunk));
 }
 

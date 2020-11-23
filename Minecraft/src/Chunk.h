@@ -3,6 +3,7 @@
 #include <mutex>
 
 #include "ChunkMesh.h"
+#include "AABB.h"
 
 class World;
 

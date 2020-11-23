@@ -10,7 +10,7 @@ Chunk::Chunk()
 
 void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
 {
-	m_MutexLock->lock();
+	std::unique_lock lock(*m_MutexLock);
 	m_ChunkState = ChunkState::Ungenerated;
 
 	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
@@ -43,7 +43,6 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
 	}
 
 	m_ChunkState = ChunkState::Generated;
-	m_MutexLock->unlock();
 }
 
 void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition)

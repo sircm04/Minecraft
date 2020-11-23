@@ -5,6 +5,8 @@
 #include "Mesh.h"
 #include "Block.h"
 
+#include "Frustum.h"
+
 class World;
 class Chunk;
 
@@ -86,5 +88,5 @@ public:
 	void AddBlockFace(const glm::vec3& position, const std::vector<float>& vertices, float face);
 	void BufferMesh();
 
-	void Render();
+	void Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition);
 };

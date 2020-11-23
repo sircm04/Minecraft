@@ -23,7 +23,7 @@ void ChunkMesh::Unbind()
 
 void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition)
 {
-	m_MutexLock->lock();
+	std::unique_lock lock(*m_MutexLock);
 	m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 	m_Vertices.clear();
@@ -90,7 +90,6 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	}
 
 	m_ChunkMeshState = ChunkMeshState::Generated;
-	m_MutexLock->unlock();
 }
 
 void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::vector<float>& vertices, float face)
@@ -118,7 +117,7 @@ void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::vector<float>
 
 void ChunkMesh::BufferMesh()
 {
-	m_MutexLock->lock();
+	std::unique_lock lock(*m_MutexLock);
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
 	layout.Push<float>(3);
@@ -133,10 +132,17 @@ void ChunkMesh::BufferMesh()
 	m_indexIndex = 0;
 
 	m_ChunkMeshState = ChunkMeshState::Complete;
-	m_MutexLock->unlock();
 }
 
-void ChunkMesh::Render()
+void ChunkMesh::Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition)
 {
-	m_Mesh->Render();
+	const glm::vec2 realChunkPosition = { (chunkPosition.x * Chunk::CHUNK_WIDTH), (chunkPosition.y * Chunk::CHUNK_DEPTH) };
+
+	if (frustum.IsBoxInFrustum({ { 0, 0, 0 }, { Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH } },
+		{
+			realChunkPosition.x,
+			0,
+			realChunkPosition.y
+		}))
+		m_Mesh->Render();
 }

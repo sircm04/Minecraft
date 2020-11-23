@@ -9,6 +9,8 @@
 
 #include "Assets.h"
 
+#include "Frustum.h"
+
 World world = World();
 Player player = Player(&world);
 
@@ -22,7 +24,7 @@ int main(void)
 	glfwWindowHint(GLFW_SAMPLES, 16);
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	window = glfwCreateWindow(856, 482, "Minecraft", nullptr, nullptr);
@@ -119,9 +121,8 @@ int main(void)
 	{
 		while (!glfwWindowShouldClose(window))
 		{
-			static double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
-			static int nbFrames = 0;
-
+			static double deltaTime = 0, lastTime = 0;
+			
 			double currentTime = glfwGetTime();
 			deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
@@ -228,7 +229,9 @@ int main(void)
 				//Assets::SHADER->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
 				//Assets::SHADER->SetVec3("viewPos", player.m_Camera.position);
 
-				world.RenderChunks();
+				ViewFrustum frustum;
+				frustum.Update(projection * view);
+				world.RenderChunks(frustum, player.m_Position);
 
 				Assets::ENTITY_SHADER->Bind();
 				Assets::ENTITY_SHADER->SetMat4("view", view);

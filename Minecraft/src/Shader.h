@@ -29,7 +29,7 @@ public:
 
 private:
 	unsigned int CompileShader(unsigned int type, const std::string& source);
-	const std::string Shader::GetShaderType(unsigned int id);
+	const std::string GetShaderType(unsigned int id);
 
 	int GetUniformLocation(const std::string& name);
 };

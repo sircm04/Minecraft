@@ -46,3 +46,31 @@ bool AABB::IntersectsBlocks(const World* world, const glm::vec3& position) const
 
 	return false;
 }
+
+glm::vec3 AABB::getVN(const glm::vec3& normal, const glm::vec3& position) const
+{
+	glm::vec3 res = GetRelativeMinimum(position);
+
+    if (normal.x < 0)
+        res.x += m_Max.x;
+    if (normal.y < 0)
+        res.y += m_Max.y;
+    if (normal.z < 0)
+        res.z += m_Max.z;
+
+    return res;
+}
+
+glm::vec3 AABB::getVP(const glm::vec3& normal, const glm::vec3& position) const
+{
+	glm::vec3 res = GetRelativeMinimum(position);
+
+    if (normal.x > 0)
+        res.x += m_Max.x;
+    if (normal.y > 0)
+        res.y += m_Max.y;
+    if (normal.z > 0)
+        res.z += m_Max.z;
+
+    return res;
+}
