@@ -1,20 +1,14 @@
 #pragma once
 
-struct ShaderEntry
-{
-	unsigned int m_Type;
-	std::string m_Source;
-};
-
 class Shader
 {
 private:
-	std::vector<ShaderEntry> m_Shaders;
+	std::unordered_map<unsigned int, std::string> m_Shaders;
 	unsigned int m_RendererID;
 	std::unordered_map<std::string, int> m_UniformLocationCache;
 
 public:
-	Shader(const std::vector<ShaderEntry>& shaders);
+	Shader(const std::unordered_map<unsigned int, std::string>& shaders);
 	~Shader();
 
 	void Bind() const;

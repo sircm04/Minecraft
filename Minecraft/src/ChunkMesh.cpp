@@ -6,24 +6,24 @@
 
 #include "Timer.h"
 
-ChunkMesh::ChunkMesh(std::shared_ptr<std::mutex> mutexLock)
+ChunkMesh::ChunkMesh(const std::shared_ptr<std::mutex>& mutexLock) noexcept
 	: m_MutexLock(mutexLock)
 {
 }
 
-void ChunkMesh::Bind()
+void ChunkMesh::Bind() const noexcept
 {
 	m_Mesh->Bind();
 }
 
-void ChunkMesh::Unbind()
+void ChunkMesh::Unbind() const noexcept
 {
 	m_Mesh->Unbind();
 }
 
-void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition)
+void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition) noexcept
 {
-	std::unique_lock lock(*m_MutexLock);
+	std::lock_guard lock(*m_MutexLock);
 	m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 	m_Vertices.clear();
@@ -35,7 +35,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	const Chunk* frontChunk = world->GetChunk({ chunkPosition.x, chunkPosition.y + 1 });
 	const Chunk* rightChunk = world->GetChunk({ chunkPosition.x + 1, chunkPosition.y });
 
-	glm::ivec2 realChunkPosition = { chunkPosition.x * Chunk::CHUNK_WIDTH, chunkPosition.y * Chunk::CHUNK_DEPTH };
+	const glm::ivec2 realChunkPosition = { chunkPosition.x * Chunk::CHUNK_WIDTH, chunkPosition.y * Chunk::CHUNK_DEPTH };
 	bool xNotFinished;
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
@@ -46,12 +46,12 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 		{
 			for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 			{
-				glm::ivec3 position = glm::ivec3 { x, y, z };
+				const glm::ivec3 position = glm::ivec3 { x, y, z };
 				const Block* block = chunk->GetBlock(position);
 
-				glm::ivec3 frontBlockPosition = { position.x, position.y, position.z + 1 };
-				glm::ivec3 rightBlockPosition = { position.x + 1, position.y, position.z };
-				glm::ivec3 topBlockPosition = { position.x, position.y + 1, position.z };
+				const glm::ivec3 frontBlockPosition = { position.x, position.y, position.z + 1 };
+				const glm::ivec3 rightBlockPosition = { position.x + 1, position.y, position.z };
+				const glm::ivec3 topBlockPosition = { position.x, position.y + 1, position.z };
 				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH_M1 || !frontChunk) ? chunk->GetBlock(frontBlockPosition) : frontChunk->GetBlock({
 					frontBlockPosition.x, frontBlockPosition.y, 0 }));
 				const Block* rightBlock = ((xNotFinished || !rightChunk) ? chunk->GetBlock(rightBlockPosition) : rightChunk->GetBlock({
@@ -60,7 +60,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 
 				if (block->m_BlockType != BlockType::Air)
 				{
-					glm::ivec3 realPosition = glm::ivec3 { x + realChunkPosition.x, y, z + realChunkPosition.y };
+					const glm::ivec3& realPosition = glm::ivec3 { x + realChunkPosition.x, y, z + realChunkPosition.y };
 
 					if (frontBlock && frontBlock->m_BlockType == BlockType::Air)
 						AddBlockFace(realPosition, FRONT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().m_Faces.value()[0]);
@@ -92,7 +92,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	m_ChunkMeshState = ChunkMeshState::Generated;
 }
 
-void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::vector<float>& vertices, float face)
+void ChunkMesh::AddBlockFace(const glm::vec3& position, const float* vertices, float face) noexcept
 {
 	for (uint8_t i = 0, index = 0; i < 4; ++i) {
 		m_Vertices.insert(m_Vertices.end(), {
@@ -115,9 +115,10 @@ void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::vector<float>
 	m_indexIndex += 4; // m_indexIndex += vertexCount;
 }
 
-void ChunkMesh::BufferMesh()
+void ChunkMesh::BufferMesh() noexcept
 {
-	std::unique_lock lock(*m_MutexLock);
+	std::lock_guard lock(*m_MutexLock);
+
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
 	layout.Push<float>(3);
@@ -134,7 +135,7 @@ void ChunkMesh::BufferMesh()
 	m_ChunkMeshState = ChunkMeshState::Complete;
 }
 
-void ChunkMesh::Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition)
+void ChunkMesh::Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition) noexcept
 {
 	const glm::vec2 realChunkPosition = { (chunkPosition.x * Chunk::CHUNK_WIDTH), (chunkPosition.y * Chunk::CHUNK_DEPTH) };
 

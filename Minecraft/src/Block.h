@@ -1,6 +1,6 @@
 #pragma once
 
-enum class BlockType : uint8_t
+const enum class BlockType : uint8_t
 {
 	Count = 8,
 
@@ -14,31 +14,31 @@ enum class BlockType : uint8_t
 	Log = 7
 };
 
-struct BlockTypeData
+const struct BlockTypeData
 {
-	std::optional<std::vector<float>> m_Faces;
+	std::optional<std::array<float, 6>> m_Faces;
 	bool isSolid = true, isTransparent = false;
 };
 
 // faces: front - back - left - right - top - bottom
 
-static const std::vector<BlockTypeData> BLOCK_TYPE_DATA =
+static constexpr BlockTypeData BLOCK_TYPE_DATA[] =
 {
 	{ std::nullopt, false, true }, // Air
-	{ std::vector<float> { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 2.0f } }, // Grass
-	{ std::vector<float> { 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f } }, // Dirt
-	{ std::vector<float> { 3.0f, 3.0f, 3.0f, 3.0f, 3.0f, 3.0f } }, // Stone
-	{ std::vector<float> { 4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f } }, // Cobblestone
-	{ std::vector<float> { 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f } }, // Bedrock
-	{ std::vector<float> { 6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f } }, // Wood
-	{ std::vector<float> { 7.0f, 7.0f, 7.0f, 7.0f, 8.0f, 8.0f } }, // Log
+	{ std::array { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 2.0f } }, // Grass
+	{ std::array { 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f } }, // Dirt
+	{ std::array { 3.0f, 3.0f, 3.0f, 3.0f, 3.0f, 3.0f } }, // Stone
+	{ std::array { 4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f } }, // Cobblestone
+	{ std::array { 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f } }, // Bedrock
+	{ std::array { 6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f } }, // Wood
+	{ std::array { 7.0f, 7.0f, 7.0f, 7.0f, 8.0f, 8.0f } }, // Log
 };
 
-static const BlockTypeData& GetBlockTypeData(BlockType blockType);
+static const BlockTypeData& GetBlockTypeData(BlockType blockType) noexcept;
 
-struct Block
+const struct Block
 {
 	BlockType m_BlockType;
 
-	const BlockTypeData& GetBlockTypeData() const;
+	const BlockTypeData& GetBlockTypeData() const noexcept;
 };

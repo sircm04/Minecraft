@@ -1,14 +1,14 @@
 #include "pch.h"
 #include "AABB.h"
 
-AABB::AABB(const glm::vec3& min, const glm::vec3& max)
+AABB::AABB(const glm::vec3& min, const glm::vec3& max) noexcept
 	: m_Min(min), m_Max(max)
 {
 }
 
-bool AABB::IsPointInsideAABB(const glm::vec3& position, const glm::vec3& point) const
+bool AABB::IsPointInsideAABB(const glm::vec3& position, const glm::vec3& point) const noexcept
 {
-	glm::vec3 oneMin = GetRelativeMinimum(position),
+	const glm::vec3 oneMin = GetRelativeMinimum(position),
 		oneMax = GetRelativeMaximum(position);
 
 	return (point.x >= oneMin.x && point.x <= oneMax.x)
@@ -16,9 +16,9 @@ bool AABB::IsPointInsideAABB(const glm::vec3& position, const glm::vec3& point) 
 		&& (point.z >= oneMin.z && point.z <= oneMax.z);
 }
 
-bool AABB::Intersects(const AABB& aabb, const glm::vec3& positionOne, const glm::vec3& positionTwo) const
+bool AABB::Intersects(const AABB& aabb, const glm::vec3& positionOne, const glm::vec3& positionTwo) const noexcept
 {
-	glm::vec3 oneMin = GetRelativeMinimum(positionOne),
+	const glm::vec3 oneMin = GetRelativeMinimum(positionOne),
 		oneMax = GetRelativeMaximum(positionOne),
 		twoMin = aabb.GetRelativeMinimum(positionTwo),
 		twoMax = aabb.GetRelativeMaximum(positionTwo);
@@ -28,9 +28,9 @@ bool AABB::Intersects(const AABB& aabb, const glm::vec3& positionOne, const glm:
 		&& (oneMin.z <= twoMax.z && oneMax.z >= twoMin.z);
 }
 
-bool AABB::IntersectsBlocks(const World* world, const glm::vec3& position) const
+bool AABB::IntersectsBlocks(const World* world, const glm::vec3& position) const noexcept
 {
-	glm::ivec3 blockMin = floor(GetRelativeMinimum(position)),
+	const glm::ivec3 blockMin = floor(GetRelativeMinimum(position)),
 		blockMax = floor(GetRelativeMaximum(position));
 
 	for (int x = blockMin.x; x <= blockMax.x; ++x) {
@@ -47,7 +47,7 @@ bool AABB::IntersectsBlocks(const World* world, const glm::vec3& position) const
 	return false;
 }
 
-glm::vec3 AABB::getVN(const glm::vec3& normal, const glm::vec3& position) const
+glm::vec3 AABB::getVN(const glm::vec3& normal, const glm::vec3& position) const noexcept
 {
 	glm::vec3 res = GetRelativeMinimum(position);
 
@@ -61,7 +61,7 @@ glm::vec3 AABB::getVN(const glm::vec3& normal, const glm::vec3& position) const
     return res;
 }
 
-glm::vec3 AABB::getVP(const glm::vec3& normal, const glm::vec3& position) const
+glm::vec3 AABB::getVP(const glm::vec3& normal, const glm::vec3& position) const noexcept
 {
 	glm::vec3 res = GetRelativeMinimum(position);
 

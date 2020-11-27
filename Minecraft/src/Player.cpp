@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Player.h"
 
-Player::Player(World* world)
+Player::Player(World* world) noexcept
 	: Mob(world, glm::vec3(), 10, 10, 9.0f)
 {
 }
@@ -9,7 +9,7 @@ Player::Player(World* world)
 void Player::Input(GLFWwindow* window, double deltaTime)
 {
 	static uint16_t clickDelay[2];
-	static uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(9));
+	static constexpr uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(9));
 	static glm::vec3 front, newPosition;
 
 	m_Speed = 9.0f;
@@ -22,7 +22,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 
 		if (blockPosition)
 		{
-			glm::ivec2 chunkPosition = m_World->GetChunkPositionFromBlock({ blockPosition->x, blockPosition->z });
+			const glm::ivec2 chunkPosition = m_World->GetChunkPositionFromBlock({ blockPosition->x, blockPosition->z });
 			Chunk* chunk = m_World->GetChunk(chunkPosition);
 			chunk->SetBlock(m_World->GetBlockPositionInChunk(*blockPosition), { BlockType::Air });
 			chunk->GenerateMesh(m_World, chunkPosition);
@@ -37,7 +37,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 
 		if (blockPosition && !PLAYER_AABB.Intersects({ { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } }, m_Position, *blockPosition))
 		{
-			glm::ivec2 chunkPosition = m_World->GetChunkPositionFromBlock({ blockPosition->x, blockPosition->z });
+			const glm::ivec2 chunkPosition = m_World->GetChunkPositionFromBlock({ blockPosition->x, blockPosition->z });
 			Chunk* chunk = m_World->GetChunk(chunkPosition);
 			chunk->SetBlock(m_World->GetBlockPositionInChunk(*blockPosition), { m_BlockInHand });
 			chunk->GenerateMesh(m_World, chunkPosition);
@@ -59,7 +59,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 			delay = 0;
 	}
 
-	for (int i = 1; i < maxBlockTypeKeys; ++i)
+	for (uint8_t i = 1; i < maxBlockTypeKeys; ++i)
 	{
 		if (glfwGetKey(window, GLFW_KEY_0 + i) == GLFW_PRESS)
 			m_BlockInHand = static_cast<BlockType>(i);
@@ -98,7 +98,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	m_Camera.position = m_Position;
 }
 
-void Player::Update(double deltaTime)
+void Player::Update(double deltaTime) noexcept
 {
 	if (!m_IsFlying)
 	{
@@ -120,11 +120,11 @@ void Player::Update(double deltaTime)
 	m_Camera.position = m_Position;
 }
 
-void Player::Render()
+void Player::Render() noexcept
 {
 }
 
-std::optional<glm::vec3> Player::GetTargetBlockPosition(int max, bool place) const
+const inline std::optional<glm::vec3> Player::GetTargetBlockPosition(int max, bool place) const noexcept
 {
 	return m_World->GetTargetBlockPosition(m_Position, m_Camera.front, max, place);
 }

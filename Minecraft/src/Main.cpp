@@ -134,6 +134,11 @@ int main(void)
 
 	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);
 
+	Assets::SHADER->Bind();
+	Assets::SHADER->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
+	Assets::SHADER->SetVec2("fogDist", glm::vec2 { World::REAL_WORLD_RADIUS * 0.75, World::REAL_WORLD_RADIUS - (16 * 2) });
+	Assets::SHADER->SetVec3("fogColor", glm::vec3 { 0.54117f, 0.64705f, 0.96470f });
+
 	while (!glfwWindowShouldClose(window))
 	{
 		static double deltaTime = 0, lastTime = 0, fpsTimeAccumulator = 0;
@@ -175,9 +180,12 @@ int main(void)
 
 				Assets::DIRT_TEXTURE->Bind();
 
-				for (int x = 0; x < ((width / dirtSize) + 1); x++)
+				static uint8_t dirtWidth = ((width / dirtSize) + 1),
+					dirtHeight = ((height / dirtSize) + 1);
+
+				for (uint8_t x = 0; x < dirtWidth; ++x)
 				{
-					for (int y = 0; y < ((height / dirtSize) + 1); y++)
+					for (uint8_t y = 0; y < dirtHeight; ++y)
 					{
 						Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { x * dirtSize, y * dirtSize, 0.0f }), { dirtSize, dirtSize, 0.0f }));
 						Assets::GUI_SHADER->SetVec4("u_color", glm::vec4 { 0.4f, 0.4f, 0.4f, 1.0f });
@@ -225,9 +233,10 @@ int main(void)
 				Assets::SHADER->SetMat4("projection", projection);
 				Assets::SHADER->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
 
-				Assets::SHADER->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
 				//Assets::SHADER->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
 				//Assets::SHADER->SetVec3("viewPos", player.m_Camera.position);
+
+				Assets::SHADER->SetVec3("playerPosition", player.m_Position);
 
 				ViewFrustum frustum;
 				frustum.Update(projection * view);
@@ -246,7 +255,7 @@ int main(void)
 				Assets::GUI_SHADER->SetMat4("projection", guiProjection);
 
 				Assets::HEART_TEXTURE->Bind();
-				for (int i = 0; i < player.m_Health; i++)
+				for (uint8_t i = 0; i < player.m_Health; ++i)
 				{
 					Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { 12.0f + (i * 13.33f), 455.0f, 0.0f }), { 15.0f, 15.0f, 0.0f }));
 					Assets::GUI_MESH->Render();

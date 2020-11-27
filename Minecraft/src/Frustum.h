@@ -2,7 +2,7 @@
 
 #include <array>
 
-struct AABB;
+class AABB;
 
 struct Plane {
     float DistanceToPoint(const glm::vec3& point) const;

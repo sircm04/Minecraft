@@ -9,39 +9,39 @@
 
 namespace Assets
 {
-	inline std::unique_ptr<Shader> SHADER, ENTITY_SHADER, GUI_SHADER, SUN_SHADER;
+	static std::unique_ptr<Shader> SHADER, ENTITY_SHADER, GUI_SHADER, SUN_SHADER;
+	
+	static std::unique_ptr<ArrayTexture> BLOCK_ARRAY_TEXTURE;
+	
+	static std::unique_ptr<Mesh> GUI_MESH;
+	static std::unique_ptr<Texture> HEART_TEXTURE;
+	static std::unique_ptr<Texture> DIRT_TEXTURE;
+	static std::unique_ptr<Texture> CROSSHAIR_TEXTURE;
+	
+	static std::unique_ptr<Mesh> SUN_MESH;
+	static std::unique_ptr<ArrayTexture> SUN_TEXTURE;
+	
+	static std::unique_ptr<Mesh> COW_MESH;
+	static std::unique_ptr<Texture> COW_TEXTURE;
 
-	inline std::unique_ptr<ArrayTexture> BLOCK_ARRAY_TEXTURE;
-
-	inline std::unique_ptr<Mesh> GUI_MESH;
-	inline std::unique_ptr<Texture> HEART_TEXTURE;
-	inline std::unique_ptr<Texture> DIRT_TEXTURE;
-	inline std::unique_ptr<Texture> CROSSHAIR_TEXTURE;
-
-	inline std::unique_ptr<Mesh> SUN_MESH;
-	inline std::unique_ptr<ArrayTexture> SUN_TEXTURE;
-
-	inline std::unique_ptr<Mesh> COW_MESH;
-	inline std::unique_ptr<Texture> COW_TEXTURE;
-
-	inline void InitializeAssets()
+	static void InitializeAssets()
 	{
-		SHADER = std::make_unique<Shader>(std::vector<ShaderEntry> {
+		SHADER = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
 			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Lighting.vert") },
 			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Lighting.frag") }
 		});
 
-		ENTITY_SHADER = std::make_unique<Shader>(std::vector<ShaderEntry> {
+		ENTITY_SHADER = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
 			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Basic2dTex.vert") },
 			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Basic2dTex.frag") }
 		});
 
-		GUI_SHADER = std::make_unique<Shader>(std::vector<ShaderEntry> {
+		GUI_SHADER = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
 			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/GUI.vert") },
 			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/GUI.frag") }
 		});
 
-		SUN_SHADER = std::make_unique<Shader>(std::vector<ShaderEntry> {
+		SUN_SHADER = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
 			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Basic3dTex.vert") },
 			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Basic3dTex.frag") }
 		});

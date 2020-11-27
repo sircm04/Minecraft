@@ -3,14 +3,14 @@
 
 #include "World.h"
 
-Chunk::Chunk()
+Chunk::Chunk() noexcept
 	: m_MutexLock(std::make_shared<std::mutex>()), m_ChunkMesh(m_MutexLock)
 {
 }
 
-void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
+void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) noexcept
 {
-	std::unique_lock lock(*m_MutexLock);
+	std::lock_guard lock(*m_MutexLock);
 	m_ChunkState = ChunkState::Ungenerated;
 
 	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
@@ -45,19 +45,19 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition)
 	m_ChunkState = ChunkState::Generated;
 }
 
-void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition)
+void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept
 {
 	m_ChunkMesh.Generate(this, world, chunkPosition);
 }
 
-bool Chunk::IsInBounds(const glm::ivec3& position)
+constexpr inline bool Chunk::IsInBounds(const glm::ivec3& position) noexcept
 {
 	return (position.x >= 0 && position.x < Chunk::CHUNK_WIDTH
 		&& position.y >= 0 && position.y < Chunk::CHUNK_HEIGHT
 		&& position.z >= 0 && position.z < Chunk::CHUNK_DEPTH);
 }
 
-bool Chunk::SetBlock(const glm::ivec3& position, const Block& block)
+bool Chunk::SetBlock(const glm::ivec3& position, const Block& block) noexcept
 {
 	if (!IsInBounds(position))
 		return false;
@@ -66,7 +66,7 @@ bool Chunk::SetBlock(const glm::ivec3& position, const Block& block)
 	return true;
 }
 
-Block* Chunk::GetBlock(const glm::ivec3& position)
+Block* Chunk::GetBlock(const glm::ivec3& position) noexcept
 {
 	if (IsInBounds(position))
 		return &m_Blocks.at(position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT);
@@ -74,7 +74,7 @@ Block* Chunk::GetBlock(const glm::ivec3& position)
 	return nullptr;
 }
 
-const Block* Chunk::GetBlock(const glm::ivec3& position) const
+const Block* Chunk::GetBlock(const glm::ivec3& position) const noexcept
 {
 	if (IsInBounds(position))
 		return &m_Blocks.at(position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT);
@@ -82,7 +82,7 @@ const Block* Chunk::GetBlock(const glm::ivec3& position) const
 	return nullptr;
 }
 
-int Chunk::GetHighestBlockYPosition(int x, int z) const
+int Chunk::GetHighestBlockYPosition(int x, int z) const noexcept
 {
 	for (int y = Chunk::CHUNK_HEIGHT; y > 0; y--)
 	{

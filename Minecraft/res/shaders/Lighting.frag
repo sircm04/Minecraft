@@ -12,6 +12,10 @@ uniform vec3 lightColor;
 
 uniform sampler2DArray image;
 
+uniform vec3 playerPosition;
+uniform vec2 fogDist;
+uniform vec3 fogColor;
+
 void main()
 {
     // ambient
@@ -31,6 +35,8 @@ void main()
     //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 2);
     //vec3 specular = specularStrength * spec * lightColor;
     
-    vec3 result = (max(ambient, diffuse)/* + specular*/);
-    color = vec4(result, 1.0) * texture(image, s_TexCoord);
+    vec4 result = vec4(max(ambient, diffuse)/* + specular*/, 1.0) * texture(image, s_TexCoord);
+    float fogFactor = clamp((fogDist.y - distance(playerPosition, s_Position)) / (fogDist.y - fogDist.x), 0.0, 1.0);
+
+    color = mix(vec4(fogColor, 1.0), result, fogFactor);
 }

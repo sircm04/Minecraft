@@ -1,14 +1,14 @@
 #include "pch.h"
 #include "Shader.h"
 
-Shader::Shader(const std::vector<ShaderEntry>& shaders)
+Shader::Shader(const std::unordered_map<unsigned int, std::string>& shaders)
 	: m_Shaders(shaders)
 {
 	m_RendererID = glCreateProgram();
 
-	for (ShaderEntry shader : shaders)
+	for (auto shader : shaders)
 	{
-		unsigned int id = CompileShader(shader.m_Type, shader.m_Source);
+		unsigned int id = CompileShader(shader.first, shader.second);
 		glAttachShader(m_RendererID, id);
 		glDeleteShader(id);
 	}
@@ -34,7 +34,7 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 	if (result == GL_FALSE) {
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char*) alloca(length * sizeof(char));
+		char* message = (char*) _malloca(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);
 		std::cout << "Failed to compile " << GetShaderType(type) << " shader!" << std::endl;
 		std::cout << message << std::endl;

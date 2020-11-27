@@ -37,25 +37,25 @@ public:
 
 	ChunkMesh m_ChunkMesh;
 
-	Chunk();
+	Chunk() noexcept;
 	~Chunk() = default;
-	Chunk(Chunk&&) = default;
+	Chunk(Chunk&&) noexcept = default;
 	Chunk(const Chunk&) = delete;
 	Chunk& operator=(const Chunk&) = delete;
 
-	void Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition);
+	void Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) noexcept;
 
-	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition);
+	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept;
 
-	static bool IsInBounds(const glm::ivec3& position);
+	static constexpr inline bool IsInBounds(const glm::ivec3& position) noexcept;
 
-	bool SetBlock(const glm::ivec3& position, const Block& block);
-	Block* GetBlock(const glm::ivec3& position);
-	const Block* GetBlock(const glm::ivec3& position) const;
+	bool SetBlock(const glm::ivec3& position, const Block& block) noexcept;
+	Block* GetBlock(const glm::ivec3& position) noexcept;
+	const Block* GetBlock(const glm::ivec3& position) const noexcept;
 
-	int GetHighestBlockYPosition(int x, int z) const;
+	int GetHighestBlockYPosition(int x, int z) const noexcept;
 
-	inline const ChunkState* GetChunkState() const { return &m_ChunkState; }
+	inline const ChunkState* GetChunkState() const noexcept { return &m_ChunkState; }
 
-	void SetRemoved() { m_ChunkState = ChunkState::Removed; }
+	void SetRemoved() noexcept { m_ChunkState = ChunkState::Removed; }
 };
