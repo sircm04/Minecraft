@@ -22,9 +22,9 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 	{
 		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 		{
-			double random = (noise->noise0_1((double) (x + realChunkX) / (Chunk::CHUNK_WIDTH / 0.4f),
-				(double) (z + realChunkZ) / (Chunk::CHUNK_DEPTH / 0.4f)) * 50);
-			uint8_t grassHeight = (Chunk::GRASS_HEIGHT / 2) + random, dirtHeight = (grassHeight - 3);
+			const double random = noise->noise0_1((((double) realChunkX + (double) x) / (double) 40),
+				(((double) realChunkZ + (double) z) / (double) 40)) * (double) 50;
+			const uint8_t grassHeight = (Chunk::GRASS_HEIGHT / 2) + random, dirtHeight = (grassHeight - 3);
 
 			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
 			{

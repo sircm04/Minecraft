@@ -7,7 +7,8 @@
 World::World() noexcept
 	: m_MutexLock(std::make_unique<std::mutex>()), m_QueueState(QueueState::Unqueued)
 {
-	m_Noise = siv::PerlinNoise(std::mt19937{});
+	std::random_device rand;
+	m_Noise = siv::PerlinNoise(std::mt19937(rand()));
 }
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)

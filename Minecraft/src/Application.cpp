@@ -2,6 +2,7 @@
 #include "Application.h"
 
 #include "Assets.h"
+#include "TextRenderer.h"
 
 Application::Application()
 	: m_World(), m_Player(&m_World)
@@ -87,7 +88,7 @@ void Application::Initialize()
 		yaw += xoffset;
 		pitch += yoffset;
 
-		pitch = std::clamp(pitch, -89.0f, 89.0f);
+		pitch = std::clamp(pitch, -89.99f, 89.99f);
 		
 		g_Application->GetPlayer().m_Camera.front = {
 			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
@@ -102,8 +103,8 @@ void Application::Initialize()
 
 	Assets::SHADER->Bind();
 	Assets::SHADER->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
-	Assets::SHADER->SetVec2("fogDist", glm::vec2 { World::REAL_WORLD_RADIUS * 0.75, World::REAL_WORLD_RADIUS - (16 * 2) });
-	Assets::SHADER->SetVec3("fogColor", glm::vec3 { 0.54117f, 0.64705f, 0.96470f });
+	Assets::SHADER->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
+	Assets::SHADER->SetVec3("fogColor", { 0.54117f, 0.64705f, 0.96470f });
 }
 
 void Application::StartLoop()
@@ -192,12 +193,12 @@ inline void Application::OnRender(int width, int height)
 			for (uint8_t y = 0; y < dirtHeight; ++y)
 			{
 				Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { x * dirtSize, y * dirtSize, 0.0f }), { dirtSize, dirtSize, 0.0f }));
-				Assets::GUI_SHADER->SetVec4("u_color", glm::vec4{ 0.4f, 0.4f, 0.4f, 1.0f });
+				Assets::GUI_SHADER->SetVec4("u_color", { 0.4f, 0.4f, 0.4f, 1.0f });
 				Assets::GUI_MESH->Render();
 			}
 		}
 
-		Assets::GUI_SHADER->SetVec4("u_color", glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+		Assets::GUI_SHADER->SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
 	}
 	else
 	{
@@ -214,14 +215,14 @@ inline void Application::OnRender(int width, int height)
 
 		static constexpr float sunSpeed = 0.005f;
 
-		glm::mat4 matrix = glm::translate(glm::mat4(1.0f), m_Player.m_Camera.position - glm::vec3{ 0.5f, 0.5f, 0.5f });
+		glm::mat4 matrix = glm::translate(glm::mat4(1.0f), m_Player.m_Camera.position);
 
 		matrix = glm::rotate(glm::translate(matrix,
-			{
-				0,
-				10.0f * sin(glfwGetTime() * sunSpeed),
-				7.5f * cos(glfwGetTime() * sunSpeed)
-			}), glm::radians((float)glfwGetTime() * (sunSpeed / 0.017f)), { -1.0f, 0.0f, 0.0f });
+		{
+			0,
+			10.0f * sin(glfwGetTime() * sunSpeed),
+			7.5f * cos(glfwGetTime() * sunSpeed)
+		}), glm::radians((float) glfwGetTime() * (sunSpeed / 0.017f)), { -1.0f, 0.0f, 0.0f });
 
 		Assets::SUN_SHADER->SetMat4("model", matrix);
 
@@ -265,9 +266,12 @@ inline void Application::OnRender(int width, int height)
 			Assets::GUI_MESH->Render();
 		}
 
+		TextRenderer::RenderText("Text is kindof working now I guess.", { 12.0f, 12.0f }, 12.0f);
+		Assets::GUI_MESH->Bind();
+
 		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 		Assets::CROSSHAIR_TEXTURE->Bind();
-		static constexpr glm::vec3 guiPosition = { (WINDOW_WIDTH / 2.0f) - 7.5f, (WINDOW_HEIGHT / 2.0f) - 7.5f, 0.0f };
+		static constexpr glm::vec3 guiPosition = { ((float) WINDOW_WIDTH / (float) 2.0f) - 7.5f, ((float) WINDOW_HEIGHT / (float) 2.0f) - 7.5f, 0.0f };
 		Assets::GUI_SHADER->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 			guiPosition), { 15.0f, 15.0f, 0.0f }));
 		Assets::GUI_MESH->Render();

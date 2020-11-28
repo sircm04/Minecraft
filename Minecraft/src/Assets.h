@@ -15,6 +15,7 @@ namespace Assets
 	static std::unique_ptr<ArrayTexture> BLOCK_ARRAY_TEXTURE;
 	
 	static std::unique_ptr<Mesh> GUI_MESH;
+	static std::unique_ptr<Texture> FONT_TEXTURE;
 	static std::unique_ptr<Texture> HEART_TEXTURE;
 	static std::unique_ptr<Texture> DIRT_TEXTURE;
 	static std::unique_ptr<Texture> CROSSHAIR_TEXTURE;
@@ -70,6 +71,7 @@ namespace Assets
 			1.0f, 1.0f, 1.0f, 0.0f
 		}, std::vector<unsigned int> { 0, 1, 2, 0, 3, 1 }, guiLayout);
 
+		FONT_TEXTURE = std::make_unique<Texture>("res/images/font.png");
 		HEART_TEXTURE = std::make_unique<Texture>("res/images/heart.png");
 		DIRT_TEXTURE = std::make_unique<Texture>("res/images/grass_bottom.png");
 		CROSSHAIR_TEXTURE = std::make_unique<Texture>("res/images/crosshair.png");
@@ -82,10 +84,8 @@ namespace Assets
 			1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 			1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 			1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-			1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f
-		}, std::vector<unsigned int> { 0, 1, 2, 3, 4, 5 }, sunLayout); // East is positive x
+			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f
+		}, std::vector<unsigned int> { 0, 1, 2, 3, 2, 1 }, sunLayout); // East is positive x
 
 		SUN_TEXTURE = std::make_unique<ArrayTexture>(std::vector<std::string> { "res/images/sun.png" }, 16, 16);
 
