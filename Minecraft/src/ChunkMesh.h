@@ -1,7 +1,5 @@
 #pragma once
 
-#include <mutex>
-
 #include "Mesh.h"
 #include "Block.h"
 
@@ -58,7 +56,7 @@ static constexpr float BOTTOM_BLOCK_FACE_VERTICES[] {
 	1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f
 };
 
-const enum class ChunkMeshState : uint8_t
+enum class ChunkMeshState : uint8_t
 {
 	Ungenerated,
 	Generated,

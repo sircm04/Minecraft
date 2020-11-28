@@ -1,13 +1,11 @@
 #pragma once
 
-#include <mutex>
-
 #include "ChunkMesh.h"
 #include "AABB.h"
 
 class World;
 
-enum class ChunkState : int8_t
+enum class ChunkState : uint8_t
 {
 	Removed,
 	Ungenerated,
@@ -16,18 +14,9 @@ enum class ChunkState : int8_t
 
 class Chunk
 {
-private:
-	std::vector<Block> m_Blocks;
-
-	unsigned int m_BufferSubIndex = 0;
-
-	ChunkState m_ChunkState = ChunkState::Ungenerated;
-
-	std::shared_ptr<std::mutex> m_MutexLock;
-
 public:
 	static constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16,
-
+		
 		CHUNK_WIDTH_M1 = (Chunk::CHUNK_WIDTH - 1), CHUNK_DEPTH_M1 = (Chunk::CHUNK_DEPTH - 1),
 
 		CHUNK_X_MASK = 15, CHUNK_Z_MASK = 15,
@@ -35,6 +24,16 @@ public:
 
 		GRASS_HEIGHT = (Chunk::CHUNK_HEIGHT - 171);
 
+	static constexpr uint16_t CHUNK_BLOCKS = Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH;
+
+private:
+	std::vector<Block> m_Blocks;
+
+	ChunkState m_ChunkState = ChunkState::Ungenerated;
+
+	std::shared_ptr<std::mutex> m_MutexLock;
+
+public:
 	ChunkMesh m_ChunkMesh;
 
 	Chunk() noexcept;

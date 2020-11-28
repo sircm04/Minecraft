@@ -18,6 +18,7 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
+#include <mutex>
 
 #include <PerlinNoise.h>
 #include <stb_image.h>

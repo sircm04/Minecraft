@@ -4,8 +4,6 @@
 #include "Player.h"
 #include "Cow.h"
 
-glm::ivec2 previousPlayerChunkPosition = { -1, -1 };
-
 World::World() noexcept
 	: m_MutexLock(std::make_unique<std::mutex>()), m_QueueState(QueueState::Unqueued)
 {
@@ -14,6 +12,7 @@ World::World() noexcept
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
 {
+	static glm::ivec2 previousPlayerChunkPosition = { -1, -1 };
 	const glm::ivec2 playerChunkPosition = GetChunkPositionFromBlock(floor(glm::vec2 { playerPosition.x, playerPosition.z }));
 
 	if (playerChunkPosition != previousPlayerChunkPosition)

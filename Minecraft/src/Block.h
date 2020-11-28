@@ -1,6 +1,6 @@
 #pragma once
 
-const enum class BlockType : uint8_t
+enum class BlockType : uint8_t
 {
 	Count = 8,
 
@@ -14,10 +14,10 @@ const enum class BlockType : uint8_t
 	Log = 7
 };
 
-const struct BlockTypeData
+struct BlockTypeData
 {
-	std::optional<std::array<float, 6>> m_Faces;
-	bool isSolid = true, isTransparent = false;
+	const std::optional<std::array<float, 6>> m_Faces;
+	const bool isSolid = true, isTransparent = false;
 };
 
 // faces: front - back - left - right - top - bottom
@@ -36,7 +36,7 @@ static constexpr BlockTypeData BLOCK_TYPE_DATA[] =
 
 static const BlockTypeData& GetBlockTypeData(BlockType blockType) noexcept;
 
-const struct Block
+struct Block
 {
 	BlockType m_BlockType;
 

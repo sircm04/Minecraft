@@ -1,14 +1,12 @@
 #pragma once
 
-#include <vector>
-
 #include "Entity.h"
 #include "Chunk.h"
 
 class Entity;
 class Player;
 
-const enum class QueueState : uint8_t
+enum class QueueState : uint8_t
 {
 	Unqueued,
 	Queued
@@ -16,6 +14,10 @@ const enum class QueueState : uint8_t
 
 class World
 {
+public:
+	static constexpr unsigned int WORLD_RADIUS = 24, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
+		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
+
 private:
 	std::unordered_map<glm::ivec2, Chunk> m_Chunks;
 	std::vector<std::unique_ptr<Entity>> m_Entities;
@@ -24,9 +26,6 @@ private:
 	std::unique_ptr<std::mutex> m_MutexLock;
 
 public:
-	static constexpr unsigned int WORLD_RADIUS = 24, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
-		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
-
 	bool m_FirstLoad = true;
 	QueueState m_QueueState;
 
