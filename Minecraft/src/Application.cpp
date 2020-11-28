@@ -72,39 +72,28 @@ void Application::Initialize()
 
 	glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xpos, double ypos)
 	{
-		static bool firstMouse = true;
-		static float lastX = 0, lastY = 0;
-		static float pitch, yaw = -90;
-
-		if (firstMouse)
-		{
-			lastX = (float) xpos;
-			lastY = (float) ypos;
-			firstMouse = false;
-		}
+		static float lastX = xpos, lastY = ypos;
+		static float pitch = glm::degrees(glm::asin(g_Application->GetPlayer().m_Camera.front.y)),
+			yaw = glm::degrees(std::atan2(g_Application->GetPlayer().m_Camera.front.z, g_Application->GetPlayer().m_Camera.front.x));
 
 		float xoffset = (float) xpos - lastX;
 		float yoffset = lastY - (float) ypos;
 		lastX = (float) xpos;
 		lastY = (float) ypos;
 
-		float sensitivity = 0.25;
-		xoffset *= sensitivity;
-		yoffset *= sensitivity;
+		xoffset *= g_Application->GetPlayer().m_Camera.sensitivity;
+		yoffset *= g_Application->GetPlayer().m_Camera.sensitivity;
 
 		yaw += xoffset;
 		pitch += yoffset;
 
-		if (pitch > 89.0f)
-			pitch = 89.0f;
-		if (pitch < -89.0f)
-			pitch = -89.0f;
-
-		g_Application->GetPlayer().m_Camera.front = glm::normalize(glm::vec3 {
+		pitch = std::clamp(pitch, -89.0f, 89.0f);
+		
+		g_Application->GetPlayer().m_Camera.front = {
 			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 			sin(glm::radians(pitch)),
 			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-		});
+		};
 	});
 
 	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);
