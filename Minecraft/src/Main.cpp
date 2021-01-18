@@ -1,19 +1,19 @@
 #include "pch.h"
 
-#include "Application.h"
+#include "Game.h"
 
-Application* g_Application;
+Game* g_Game;
 
 int main(void)
 {
-	Application app;
-	g_Application = &app;
+	Game game;
+	g_Game = &game;
 	
-	if (!app.CreateContext())
+	if (!game.CreateWindowAndContext("Minecraft", 854, 480))
 		return -1;
 	
-	app.Initialize();
-	app.StartLoop();
-
+	game.Initialize();
+	game.StartLoop();
+	
 	return 0;
 }

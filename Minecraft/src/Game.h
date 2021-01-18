@@ -3,28 +3,28 @@
 #include "World.h"
 #include "Player.h"
 
-class Application
+class Game
 {
 private:
-	const std::string WINDOW_TITLE = "Minecraft";
-	static constexpr unsigned int WINDOW_WIDTH = 856, WINDOW_HEIGHT = 482;
-
 	GLFWwindow* m_Window;
+	std::string m_WindowTitle;
+	unsigned int m_HorizontalResolution = 1920, m_VerticalResolution = 1027;
+
 	bool m_IsRunning = false;
 
 	World m_World;
 	Player m_Player;
 
 public:
-	Application();
-	~Application();
+	Game();
+	~Game();
 
-	bool CreateContext();
+	bool CreateWindowAndContext(const std::string& title, unsigned int width, unsigned int height);
 	void Initialize();
 	void StartLoop();
 
 	inline void OnUpdate(double deltaTime);
-	inline void OnRender(int width, int height);
+	inline void OnRender(int width, int height, double fps);
 
 	inline GLFWwindow* GetWindow() const noexcept { return m_Window; }
 	inline bool IsRunning() const noexcept { return m_IsRunning; }
@@ -32,4 +32,4 @@ public:
 	inline Player& GetPlayer() noexcept { return m_Player; }
 };
 
-extern Application* g_Application;
+extern Game* g_Game;
