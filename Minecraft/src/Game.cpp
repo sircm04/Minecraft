@@ -257,7 +257,8 @@ inline void Game::OnRender(int width, int height, double fps)
 		glDisable(GL_MULTISAMPLE);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f, std::min((float) width / 1280.0f, ((float) height / 960.0f))));
+		static float maxX = (0.67f * m_HorizontalResolution), maxY = (0.93f * m_VerticalResolution);
+		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f, std::min((float) width / maxX, ((float) height / maxY))));
 
 		Assets::SHADERS["GUI"]->Bind();
 		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
@@ -273,7 +274,7 @@ inline void Game::OnRender(int width, int height, double fps)
 		std::stringstream ss;
 		ss << "FPS: " << fps;
 
-		TextRenderer::RenderText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, (8.0f * size));
+		TextRenderer::RenderText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);
 		Assets::MESHES["GUI"]->Bind();
 
 		glEnable(GL_MULTISAMPLE);
