@@ -7,14 +7,23 @@ namespace TextRenderer
 {
 	static const std::string CHARACTERS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTYVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 	static const uint8_t MAX_LENGTH = 16, CHARACTER_WIDTH = 6, CHARACTER_HEIGHT = 7;
+	static std::vector<float> vertices;
+	static std::vector<unsigned int> indices;
+	static unsigned int index = 0;
+
+	static inline void Begin()
+	{
+		vertices.clear();
+		vertices.shrink_to_fit();
+		indices.clear();
+		indices.shrink_to_fit();
+		index = 0;
+	}
 
 	static inline void RenderText(const std::string& text, const glm::vec2& position, unsigned int size)
 	{
-		Assets::TEXTURES["FONT"]->Bind();
-
-		std::vector<float> vertices;
-		std::vector<unsigned int> indices;
-		unsigned int index = 0;
+		unsigned int xScale = (CHARACTER_WIDTH * size),
+			yScale = (CHARACTER_HEIGHT * size);
 
 		for (int i = 0; i < text.length(); ++i)
 		{
@@ -31,10 +40,10 @@ namespace TextRenderer
 				yMax = 1.0f - ((float) (y + CHARACTER_HEIGHT) / (float) imageHeight);
 
 			vertices.insert(vertices.end(), {
-				0.0f + i, 1.0f, xMin, yMax,
-				1.0f + i, 0.0f, xMax, yMin,
-				0.0f + i, 0.0f, xMin, yMin,
-				1.0f + i, 1.0f, xMax, yMax
+				i * xScale + position.x, 1.0f * yScale + position.y, xMin, yMax,
+				(1.0f + i) * xScale + position.x, position.y, xMax, yMin,
+				i * xScale + position.x, position.y, xMin, yMin,
+				(1.0f + i) * xScale + position.x, 1.0f * yScale + position.y, xMax, yMax
 			});
 
 			indices.insert(indices.end(), {
@@ -43,21 +52,20 @@ namespace TextRenderer
 			});
 			index += 4;
 		}
+	}
 
+	static inline void End()
+	{
 		VertexBufferLayout guiLayout;
 		guiLayout.Push<float>(2);
 		guiLayout.Push<float>(2);
 
-		auto mesh = std::make_unique<Mesh>(vertices, indices, guiLayout);
+		auto mesh = Mesh(vertices, indices, guiLayout);
 
-		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
-		{
-			position.x,
-			position.y,
-			0.0f
-		}), { CHARACTER_WIDTH * size, CHARACTER_HEIGHT * size, 0.0f }));
+		Assets::TEXTURES["FONT"]->Bind();
+		Assets::SHADERS["GUI"]->SetMat4("model", glm::mat4(1.0f));
 
-		mesh->Bind();
-		mesh->Render();
+		mesh.Bind();
+		mesh.Render();
 	}
 }

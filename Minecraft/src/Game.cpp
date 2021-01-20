@@ -255,11 +255,13 @@ inline void Game::OnRender(int width, int height, double fps)
 		m_World.RenderEntities();
 
 		glDisable(GL_MULTISAMPLE);
+		glDisable(GL_DEPTH_TEST);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		static float maxX = (0.67f * m_HorizontalResolution), maxY = (0.93f * m_VerticalResolution);
-		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f, std::min((float) width / maxX, ((float) height / maxY))));
-
+		static const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		static const float maxScalingWidth = (0.67f * mode->width), maxScalingHeight = (0.93f * (mode->height - 53)); // 1080p maximized (not fullscreen): 1280/960
+		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f, std::min((float) width / maxScalingWidth, ((float) height / maxScalingHeight))));
+		
 		Assets::SHADERS["GUI"]->Bind();
 		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
 		Assets::MESHES["GUI"]->Bind();
@@ -274,7 +276,9 @@ inline void Game::OnRender(int width, int height, double fps)
 		std::stringstream ss;
 		ss << "FPS: " << fps;
 
+		TextRenderer::Begin();
 		TextRenderer::RenderText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);
+		TextRenderer::End();
 		Assets::MESHES["GUI"]->Bind();
 
 		glEnable(GL_MULTISAMPLE);
@@ -286,6 +290,8 @@ inline void Game::OnRender(int width, int height, double fps)
 			guiPosition), { 9.0f * size, 9.0f * size, 0.0f }));
 		Assets::MESHES["GUI"]->Render();
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	glfwSwapBuffers(m_Window);

@@ -8,8 +8,7 @@ class Game
 private:
 	GLFWwindow* m_Window;
 	std::string m_WindowTitle;
-	unsigned int m_HorizontalResolution = 1920, m_VerticalResolution = 1027;
-
+	
 	bool m_IsRunning = false;
 
 	World m_World;
