@@ -35,7 +35,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	const Chunk* frontChunk = world->GetChunk({ chunkPosition.x, chunkPosition.y + 1 });
 	const Chunk* rightChunk = world->GetChunk({ chunkPosition.x + 1, chunkPosition.y });
 
-	const glm::ivec2 realChunkPosition = { chunkPosition.x * Chunk::CHUNK_WIDTH, chunkPosition.y * Chunk::CHUNK_DEPTH };
+	const glm::ivec2 realChunkPosition = { chunkPosition.x << Chunk::CHUNK_X_SHIFT, chunkPosition.y << Chunk::CHUNK_Z_SHIFT };
 	bool xNotFinished;
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)

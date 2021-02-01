@@ -20,7 +20,7 @@ namespace TextRenderer
 		index = 0;
 	}
 
-	static inline void RenderText(const std::string& text, const glm::vec2& position, unsigned int size)
+	static inline void DrawText(const std::string& text, const glm::vec2& position, unsigned int size)
 	{
 		unsigned int xScale = (CHARACTER_WIDTH * size),
 			yScale = (CHARACTER_HEIGHT * size);

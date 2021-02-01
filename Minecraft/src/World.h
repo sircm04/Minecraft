@@ -6,12 +6,6 @@
 class Entity;
 class Player;
 
-enum class QueueState : uint8_t
-{
-	Unqueued,
-	Queued
-};
-
 class World
 {
 public:
@@ -23,11 +17,10 @@ private:
 	std::vector<std::unique_ptr<Entity>> m_Entities;
 	siv::PerlinNoise m_Noise;
 
-	std::unique_ptr<std::mutex> m_MutexLock;
+	std::mutex m_MutexLock, m_MutexLock2;
 
 public:
 	bool m_FirstLoad = true;
-	QueueState m_QueueState;
 
 	World() noexcept;
 

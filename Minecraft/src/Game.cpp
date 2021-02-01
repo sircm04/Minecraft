@@ -277,20 +277,20 @@ inline void Game::OnRender(int width, int height, double fps)
 		ss << "FPS: " << fps;
 
 		TextRenderer::Begin();
-		TextRenderer::RenderText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);
+		TextRenderer::DrawText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);
 		TextRenderer::End();
 		Assets::MESHES["GUI"]->Bind();
 
 		glEnable(GL_MULTISAMPLE);
-
 		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
+
 		Assets::TEXTURES["CROSSHAIR"]->Bind();
 		glm::vec3 guiPosition = { ((float) width * 0.5f) - (4.5f * size), ((float) height * 0.5f) - (4.5f * size), 0.0f };
 		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 			guiPosition), { 9.0f * size, 9.0f * size, 0.0f }));
 		Assets::MESHES["GUI"]->Render();
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
 	}
 

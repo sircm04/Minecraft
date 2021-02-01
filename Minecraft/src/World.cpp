@@ -4,8 +4,9 @@
 #include "Player.h"
 #include "Cow.h"
 
+#include "Timer.h"
+
 World::World() noexcept
-	: m_MutexLock(std::make_unique<std::mutex>()), m_QueueState(QueueState::Unqueued)
 {
 	std::random_device rand;
 	m_Noise = siv::PerlinNoise(std::mt19937(rand()));
@@ -13,20 +14,13 @@ World::World() noexcept
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
 {
-	static glm::ivec2 previousPlayerChunkPosition = { -1, -1 };
+	static glm::ivec2 previousPlayerChunkPosition;
 	const glm::ivec2 playerChunkPosition = GetChunkPositionFromBlock(floor(glm::vec2 { playerPosition.x, playerPosition.z }));
 
-	if (playerChunkPosition != previousPlayerChunkPosition)
-		m_QueueState = QueueState::Queued;
+	if (playerChunkPosition != previousPlayerChunkPosition || m_FirstLoad)
+		UpdateChunks(player, playerChunkPosition);
 
 	previousPlayerChunkPosition = playerChunkPosition;
-
-	if (m_QueueState == QueueState::Queued)
-	{
-		m_QueueState = QueueState::Unqueued;
-
-		UpdateChunks(player, playerChunkPosition);
-	}
 
 	UpdateEntities(deltaTime);
 }
@@ -64,17 +58,16 @@ void World::RenderEntities()
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
-	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
-	{
-		if (m_QueueState == QueueState::Queued)
-			return;
+	std::lock_guard lock(m_MutexLock);
 
-		if (ceil(glm::distance(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= WORLD_OUTER_RADIUS)
+	static constexpr unsigned int worldOuterRadius2 = WORLD_OUTER_RADIUS * WORLD_OUTER_RADIUS;
+	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
+		if (ceil(glm::distance2(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= worldOuterRadius2)
 			it->second.SetRemoved();
-	}
 
 	auto loop = [&](unsigned int radius, auto&& code)
 	{
+		Timer timer("UpdateChunks subloop finished");
 		std::vector<std::future<void>> futures;
 
 		int xPositiveDistance = radius + playerChunkPosition.x,
@@ -82,43 +75,26 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			xNegativeDistance = -radius + playerChunkPosition.x,
 			zNegativeDistance = -radius + playerChunkPosition.y;
 
+		const float radius2 = radius * radius;
+
 		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
-		{
-			for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
-			{
-				if (m_QueueState == QueueState::Queued)
-				{
-					for (auto& future : futures)
-						future.wait();
-					return;
-				}
-
-				const glm::ivec2 chunkPosition = { x, z };
-
-				if (ceil(glm::distance(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius)
-					futures.push_back(std::async(std::launch::async, code, x, z, chunkPosition, playerChunkPosition));
-			}
-		}
-
-		for (auto& future : futures)
-			future.wait();
+			futures.push_back(std::async(std::launch::async, code, x, zNegativeDistance, zPositiveDistance, radius2, playerChunkPosition));
 	};
 
-	loop(WORLD_OUTER_RADIUS, [&](int x, int z, const glm::ivec2& chunkPosition, const glm::ivec2& playerChunkPosition) {
-		if (!GetChunk(chunkPosition))
+	loop(WORLD_OUTER_RADIUS, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
+		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 		{
-			Chunk chunk;
-			chunk.Generate(&m_Noise, chunkPosition);
-			SetChunk(chunkPosition, std::move(chunk));
+			const glm::ivec2 chunkPosition = { x, z };
 
-			/*Chunk* leftChunk = GetChunk({ chunkPosition.x - 1, chunkPosition.y });
-			Chunk* backChunk = GetChunk({ chunkPosition.x, chunkPosition.y - 1 });
-
-			if (leftChunk && leftChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-				leftChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;
-
-			if (backChunk && backChunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-				backChunk->m_ChunkMesh.m_ChunkMeshState = ChunkMeshState::Ungenerated;*/
+			if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
+			{
+				if (!GetChunk(chunkPosition))
+				{
+					Chunk chunk;
+					chunk.Generate(&m_Noise, chunkPosition);
+					SetChunk(chunkPosition, std::move(chunk));
+				}
+			}
 		}
 	});
 	
@@ -133,12 +109,20 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		}
 	}
 
-	loop(WORLD_RADIUS, [&](int x, int z, const glm::ivec2& chunkPosition, const glm::ivec2& playerChunkPosition) {
-		Chunk* chunk = GetChunk(chunkPosition);
+	loop(WORLD_RADIUS, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
+		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
+		{
+			const glm::ivec2 chunkPosition = { x, z };
 
-		if (chunk && *chunk->GetChunkState() == ChunkState::Generated
-			&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
-			chunk->GenerateMesh(this, chunkPosition);
+			if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
+			{
+				Chunk* chunk = GetChunk(chunkPosition);
+
+				if (chunk && *chunk->GetChunkState() == ChunkState::Generated
+					&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
+					chunk->GenerateMesh(this, chunkPosition);
+			}
+		}
 	});
 }
 
@@ -167,20 +151,18 @@ const glm::ivec3 World::GetBlockPositionInChunk(const glm::ivec3& position) noex
 
 void World::SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept
 {
-	std::lock_guard lock(*m_MutexLock);
+	std::lock_guard lock(m_MutexLock2);
 	m_Chunks.emplace(position, std::move(chunk));
 }
 
 Chunk* World::GetChunk(const glm::ivec2& position) noexcept
 {
-	std::lock_guard lock(*m_MutexLock);
 	auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
 
 const Chunk* World::GetChunk(const glm::ivec2& position) const noexcept
 {
-	std::lock_guard lock(*m_MutexLock);
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
