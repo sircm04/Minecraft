@@ -4,11 +4,6 @@
 #include "Assets.h"
 #include "TextRenderer.h"
 
-Game::Game()
-	: m_World(), m_Player(&m_World)
-{
-}
-
 Game::~Game()
 {
 	glfwTerminate();

@@ -12,10 +12,10 @@ private:
 	bool m_IsRunning = false;
 
 	World m_World;
-	Player m_Player;
+	Player m_Player = Player(&m_World);
 
 public:
-	Game();
+	Game() noexcept = default;
 	~Game();
 
 	bool CreateWindowAndContext(const std::string& title, unsigned int width, unsigned int height);
