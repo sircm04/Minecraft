@@ -253,6 +253,7 @@ inline void Game::OnRender(int width, int height, double fps)
 		glDisable(GL_DEPTH_TEST);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
+		// Adjusts GUI scaling with window resizing:
 		static const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		static const float maxScalingWidth = (0.67f * mode->width), maxScalingHeight = (0.93f * (mode->height - 53)); // 1080p maximized (not fullscreen): 1280/960
 		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f, std::min((float) width / maxScalingWidth, ((float) height / maxScalingHeight))));
