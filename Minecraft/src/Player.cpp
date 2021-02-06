@@ -13,7 +13,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	static glm::vec3 front, newPosition;
 
 	m_Speed = 9.0f;
-	front = { m_Camera.front.x, 0.0f, m_Camera.front.z };
+	front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z });
 	newPosition = m_Position;
 	
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && clickDelay[0] == 0)
