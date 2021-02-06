@@ -8,6 +8,6 @@ class Cow : public Mob
 public:
 	Cow(World* world, const glm::vec3& position) noexcept;
 	
-	void Update(double deltaTime) noexcept;
-	void Render();
+	virtual void Update(double deltaTime) noexcept override;
+	virtual void Render() override;
 };

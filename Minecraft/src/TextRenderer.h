@@ -14,9 +14,7 @@ namespace TextRenderer
 	static inline void Begin()
 	{
 		vertices.clear();
-		vertices.shrink_to_fit();
 		indices.clear();
-		indices.shrink_to_fit();
 		index = 0;
 	}
 

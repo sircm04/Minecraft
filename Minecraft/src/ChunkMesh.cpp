@@ -128,8 +128,6 @@ void ChunkMesh::BufferMesh() noexcept
 	
 	m_Vertices.clear();
 	m_Indices.clear();
-	m_Vertices.shrink_to_fit();
-	m_Indices.shrink_to_fit();
 	m_indexIndex = 0;
 
 	m_ChunkMeshState = ChunkMeshState::Complete;

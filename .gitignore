@@ -263,3 +263,5 @@ __pycache__/
 *.bat
 *.sln
 *.vcxproj*
+
+/build

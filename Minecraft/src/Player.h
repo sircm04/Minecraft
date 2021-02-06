@@ -18,8 +18,8 @@ public:
 	Player(World* world) noexcept;
 	
 	void Input(GLFWwindow* window, double deltaTime);
-	void Update(double deltaTime) noexcept;
-	void Render() noexcept;
+	virtual void Update(double deltaTime) noexcept override;
+	virtual void Render() noexcept override;
 
 	const inline std::optional<glm::vec3> GetTargetBlockPosition(int max, bool place = false) const noexcept;
 };
