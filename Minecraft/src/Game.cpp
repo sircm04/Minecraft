@@ -88,11 +88,11 @@ void Game::Initialize()
 
 		pitch = std::clamp(pitch, -89.99f, 89.99f);
 		
-		g_Game->GetPlayer().m_Camera.front = {
+		g_Game->GetPlayer().m_Camera.front = glm::normalize(glm::vec3 {
 			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 			sin(glm::radians(pitch)),
 			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-		};
+		});
 	});
 
 	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);

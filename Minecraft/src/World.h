@@ -17,7 +17,7 @@ private:
 	std::vector<std::unique_ptr<Entity>> m_Entities;
 	siv::PerlinNoise m_Noise;
 
-	std::mutex m_MutexLock, m_MutexLock2;
+	std::mutex m_MutexLock;
 
 public:
 	bool m_FirstLoad = true;

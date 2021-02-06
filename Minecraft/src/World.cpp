@@ -58,8 +58,6 @@ void World::RenderEntities()
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
-	std::lock_guard lock(m_MutexLock);
-
 	static constexpr unsigned int worldOuterRadius2 = WORLD_OUTER_RADIUS * WORLD_OUTER_RADIUS;
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
 		if (ceil(glm::distance2(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= worldOuterRadius2)
@@ -151,7 +149,7 @@ const glm::ivec3 World::GetBlockPositionInChunk(const glm::ivec3& position) noex
 
 void World::SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept
 {
-	std::lock_guard lock(m_MutexLock2);
+	std::lock_guard lock(m_MutexLock);
 	m_Chunks.emplace(position, std::move(chunk));
 }
 
