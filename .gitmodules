@@ -1,9 +1,9 @@
-[submodule "Minecraft/Dependencies/GLFW"]
-	path = Minecraft/Dependencies/GLFW
+[submodule "deps/GLFW"]
+	path = deps/GLFW
 	url = https://github.com/glfw/glfw
-[submodule "Minecraft/Dependencies/Glad"]
-	path = Minecraft/Dependencies/Glad
+[submodule "deps/Glad"]
+	path = deps/Glad
 	url = https://github.com/rtryan98/glad
-[submodule "Minecraft/Dependencies/glm"]
-	path = Minecraft/Dependencies/glm
+[submodule "deps/glm"]
+	path = deps/glm
 	url = https://github.com/g-truc/glm
