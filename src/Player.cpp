@@ -11,8 +11,8 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	static float clickDelay[2];
 	static constexpr uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(9));
 	static glm::vec3 front, newPosition;
-
-	m_Speed = 9.0f;
+	
+	m_Speed = ((m_IsFlying) ? 9.0f : 5.5f);
 	front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z });
 	newPosition = m_Position;
 	
@@ -66,7 +66,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-		m_Speed *= 5;
+		m_Speed *= ((m_IsFlying) ? 5.0f : 1.5f);
 
 	m_Speed *= deltaTime;
 
@@ -79,8 +79,19 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		newPosition += glm::normalize(glm::cross(front, m_Camera.up)) * m_Speed;
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		newPosition += m_Speed * m_Camera.up;
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+		if (m_IsFlying)
+		{
+			newPosition += m_Speed * m_Camera.up;
+		}
+		else if (!m_IsFalling)
+		{
+			m_AccelerationY = 30.0f;
+			m_VelocityY = 9.5f;
+			m_IsFalling = true;
+		}
+	}
+	if (m_IsFlying && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		newPosition -= m_Speed * m_Camera.up;
 
 	if (newPosition != m_Position)
@@ -102,7 +113,25 @@ void Player::Update(double deltaTime) noexcept
 {
 	if (!m_IsFlying)
 	{
-		glm::vec3 newPosition = { m_Position.x, m_Position.y - (20.0f * deltaTime), m_Position.z };
+		const Block* block = m_World->GetBlock(glm::floor(glm::vec3 { m_Position.x, m_Position.y + PLAYER_AABB.GetMinimum().y - 0.01f, m_Position.z }));
+
+		if (m_IsFalling = (block && block->m_BlockType == BlockType::Air))
+		{
+			if (m_VelocityY > -100.0f && m_VelocityY < 100.0f)
+				m_VelocityY += m_AccelerationY * deltaTime;
+
+			if (m_AccelerationY > -30.0f)
+				m_AccelerationY -= 10.0f;
+		}
+		else
+		{
+			m_VelocityY = 0.0f;
+			m_AccelerationY = 0.0f;
+		}
+
+		std::cout << m_VelocityY << "\n";
+
+		glm::vec3 newPosition = { m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z };
 
 		if (newPosition != m_Position)
 		{
@@ -120,7 +149,7 @@ void Player::Update(double deltaTime) noexcept
 	m_Camera.position = m_Position;
 }
 
-void Player::Render() noexcept
+void Player::Render() const noexcept
 {
 }
 

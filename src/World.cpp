@@ -52,8 +52,8 @@ void World::RenderChunks(const ViewFrustum& frustum, const glm::vec3& playerPosi
 
 void World::RenderEntities()
 {
-	for (auto it = m_Entities.begin(); it != m_Entities.end(); ++it)
-		(*it)->Render();
+	for (const auto& entity : m_Entities)
+		entity->Render();
 }
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
@@ -103,7 +103,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		if (y != -1)
 		{
 			player->m_Position.y = (y + 2.5f);
-			//AddEntity<Cow>(Cow(this, player->m_Position));
+			AddEntity<Cow>(this, player->m_Position);
 		}
 	}
 
@@ -126,8 +126,8 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 void World::UpdateEntities(double deltaTime)
 {
-	for (auto it = m_Entities.begin(); it != m_Entities.end(); ++it)
-		(*it)->Update(deltaTime);
+	for (auto& entity : m_Entities)
+		entity->Update(deltaTime);
 }
 
 const glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position) noexcept
@@ -289,8 +289,8 @@ const std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position
 	return std::nullopt;
 }
 
-template<class Entity>
-void World::AddEntity(const Entity& entity)
+template<class E, typename... Ts>
+void World::AddEntity(Ts&&... vals)
 {
-	m_Entities.emplace_back(std::make_unique<Entity>(entity));
+	m_Entities.emplace_back(std::make_unique<E>(std::forward<Ts>(vals)...));
 }

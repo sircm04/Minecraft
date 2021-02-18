@@ -86,7 +86,7 @@ void Game::Initialize()
 		yaw += xoffset;
 		pitch += yoffset;
 
-		pitch = std::clamp(pitch, -89.99f, 89.99f);
+		pitch = std::clamp(pitch, -89.9f, 89.9f);
 		
 		g_Game->GetPlayer().m_Camera.front = glm::normalize(glm::vec3 {
 			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
@@ -234,8 +234,8 @@ inline void Game::OnRender(int width, int height, double fps)
 		Assets::SHADERS["GENERIC"]->SetMat4("projection", projection);
 		Assets::SHADERS["GENERIC"]->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
 
-		//Assets::SHADER->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
-		//Assets::SHADER->SetVec3("viewPos", player.m_Camera.position);
+		//Assets::SHADERS["GENERIC"]->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
+		//Assets::SHADERS["GENERIC"]->SetVec3("viewPos", m_Player.m_Camera.position);
 
 		Assets::SHADERS["GENERIC"]->SetVec3("playerPosition", m_Player.m_Position);
 

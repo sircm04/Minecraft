@@ -2,10 +2,9 @@ cmake_minimum_required(VERSION 3.13...3.18 FATAL_ERROR)
 
 project(Minecraft)
 
-file(GLOB "MINECRAFT_FILES" "src/*.cpp"
+file(GLOB_RECURSE "MINECRAFT_FILES" "src/*.cpp"
                             "src/*.h"
-                            "res/images/*.*"
-                            "res/shaders/*.*"
+                            "res/*.*"
                             "deps/PerlinNoise/PerlinNoise.h"
                             "deps/stb_image/stb_image.cpp"
                             "deps/stb_image/stb_image.h")

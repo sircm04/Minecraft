@@ -60,12 +60,10 @@ bool ViewFrustum::IsBoxInFrustum(const AABB& box, const glm::vec3& position) con
 {
     bool result = true;
     for (auto& plane : m_Planes) {
-        if (plane.DistanceToPoint(box.getVP(plane.normal, position)) < 0) {
+        if (plane.DistanceToPoint(box.getVP(plane.normal, position)) < 0)
             return false;
-        }
-        else if (plane.DistanceToPoint(box.getVN(plane.normal, position)) < 0) {
+        else if (plane.DistanceToPoint(box.getVN(plane.normal, position)) < 0)
             result = true;
-        }
     }
     return result;
 }

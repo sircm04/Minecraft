@@ -4,8 +4,6 @@
 #include "World.h"
 #include "Chunk.h"
 
-#include "Timer.h"
-
 ChunkMesh::ChunkMesh(const std::shared_ptr<std::mutex>& mutexLock) noexcept
 	: m_MutexLock(mutexLock)
 {
@@ -28,9 +26,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 
 	m_Vertices.clear();
 	m_Indices.clear();
-	m_Vertices.shrink_to_fit();
-	m_Indices.shrink_to_fit();
-	m_indexIndex = 0;
+	m_IndicesIndex = 0;
 
 	const Chunk* frontChunk = world->GetChunk({ chunkPosition.x, chunkPosition.y + 1 });
 	const Chunk* rightChunk = world->GetChunk({ chunkPosition.x + 1, chunkPosition.y });
@@ -46,12 +42,11 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 		{
 			for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 			{
-				const glm::ivec3 position = glm::ivec3 { x, y, z };
-				const Block* block = chunk->GetBlock(position);
+				const Block* block = chunk->GetBlock({ x, y, z });
 
-				const glm::ivec3 frontBlockPosition = { position.x, position.y, position.z + 1 };
-				const glm::ivec3 rightBlockPosition = { position.x + 1, position.y, position.z };
-				const glm::ivec3 topBlockPosition = { position.x, position.y + 1, position.z };
+				const glm::ivec3 frontBlockPosition = { x, y, z + 1 };
+				const glm::ivec3 rightBlockPosition = { x + 1, y, z };
+				const glm::ivec3 topBlockPosition = { x, y + 1, z };
 				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH_M1 || !frontChunk) ? chunk->GetBlock(frontBlockPosition) : frontChunk->GetBlock({
 					frontBlockPosition.x, frontBlockPosition.y, 0 }));
 				const Block* rightBlock = ((xNotFinished || !rightChunk) ? chunk->GetBlock(rightBlockPosition) : rightChunk->GetBlock({
@@ -92,7 +87,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	m_ChunkMeshState = ChunkMeshState::Generated;
 }
 
-void ChunkMesh::AddBlockFace(const glm::vec3& position, const float* vertices, float face) noexcept
+void ChunkMesh::AddBlockFace(const glm::vec3& position, const std::array<float, 36>& vertices, float face) noexcept
 {
 	for (uint8_t i = 0, index = 0; i < 4; ++i) {
 		m_Vertices.insert(m_Vertices.end(), {
@@ -109,10 +104,10 @@ void ChunkMesh::AddBlockFace(const glm::vec3& position, const float* vertices, f
 	}
 
 	m_Indices.insert(m_Indices.end(), {
-		m_indexIndex, m_indexIndex + 1, m_indexIndex + 2,
-		m_indexIndex + 2, m_indexIndex + 3, m_indexIndex
+		m_IndicesIndex, m_IndicesIndex + 1, m_IndicesIndex + 2,
+		m_IndicesIndex + 2, m_IndicesIndex + 3, m_IndicesIndex
 	});
-	m_indexIndex += 4; // m_indexIndex += vertexCount;
+	m_IndicesIndex += 4;
 }
 
 void ChunkMesh::BufferMesh() noexcept
@@ -128,7 +123,7 @@ void ChunkMesh::BufferMesh() noexcept
 	
 	m_Vertices.clear();
 	m_Indices.clear();
-	m_indexIndex = 0;
+	m_IndicesIndex = 0;
 
 	m_ChunkMeshState = ChunkMeshState::Complete;
 }

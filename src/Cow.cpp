@@ -12,7 +12,7 @@ void Cow::Update(double deltaTime) noexcept
 {
 }
 
-void Cow::Render()
+void Cow::Render() const
 {
 	Assets::SHADERS["ENTITY"]->Bind();
 	Assets::SHADERS["ENTITY"]->SetMat4("model", glm::translate(glm::mat4(1.0f), m_Position));

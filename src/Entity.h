@@ -16,5 +16,5 @@ public:
 	virtual ~Entity() = default;
 
 	virtual void Update(double deltaTime) = 0;
-	virtual void Render() = 0;
+	virtual void Render() const = 0;
 };

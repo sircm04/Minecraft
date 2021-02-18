@@ -9,7 +9,7 @@ class Player;
 class World
 {
 public:
-	static constexpr unsigned int WORLD_RADIUS = 24, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
+	static constexpr unsigned int WORLD_RADIUS = 80, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
 		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
 
 private:
@@ -49,6 +49,6 @@ public:
 
 	const std::optional<glm::ivec3> GetTargetBlockPosition(glm::vec3 position, const glm::vec3& direction, int max, bool place = false) const noexcept;
 
-	template<class Entity>
-	void AddEntity(const Entity& entity);
+	template<class E, typename... Ts>
+	void AddEntity(Ts&&... vals);
 };

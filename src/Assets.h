@@ -5,15 +5,14 @@
 #include "Texture.h"
 #include "ArrayTexture.h"
 #include "VertexBufferLayout.h"
-
 #include "Utils.h"
 
 namespace Assets
 {
-	static std::unordered_map<std::string, std::unique_ptr<Shader>> SHADERS;
-	static std::unordered_map<std::string, std::unique_ptr<Texture>> TEXTURES;
-	static std::unordered_map<std::string, std::unique_ptr<ArrayTexture>> ARRAY_TEXTURES;
-	static std::unordered_map<std::string, std::unique_ptr<Mesh>> MESHES;
+	inline std::unordered_map<std::string, std::unique_ptr<Shader>> SHADERS;
+	inline std::unordered_map<std::string, std::unique_ptr<Texture>> TEXTURES;
+	inline std::unordered_map<std::string, std::unique_ptr<ArrayTexture>> ARRAY_TEXTURES;
+	inline std::unordered_map<std::string, std::unique_ptr<Mesh>> MESHES;
 
 	static void InitializeAssets()
 	{

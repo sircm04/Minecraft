@@ -8,7 +8,7 @@
 class World;
 class Chunk;
 
-static constexpr float FRONT_BLOCK_FACE_VERTICES[] = {
+inline constexpr std::array<float, 36> FRONT_BLOCK_FACE_VERTICES = {
 	// front
 	0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 	0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
@@ -16,7 +16,7 @@ static constexpr float FRONT_BLOCK_FACE_VERTICES[] = {
 	1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f
 };
 
-static constexpr float BACK_BLOCK_FACE_VERTICES[] {
+inline constexpr std::array<float, 36> BACK_BLOCK_FACE_VERTICES {
 	// back
 	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
@@ -24,7 +24,7 @@ static constexpr float BACK_BLOCK_FACE_VERTICES[] {
 	1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
 };
 
-static constexpr float LEFT_BLOCK_FACE_VERTICES[] {
+inline constexpr std::array<float, 36> LEFT_BLOCK_FACE_VERTICES {
 	// left
 	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 	0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
@@ -32,7 +32,7 @@ static constexpr float LEFT_BLOCK_FACE_VERTICES[] {
 	0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f
 };
 
-static constexpr float RIGHT_BLOCK_FACE_VERTICES[] {
+inline constexpr std::array<float, 36> RIGHT_BLOCK_FACE_VERTICES {
 	// right
 	1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -40,7 +40,7 @@ static constexpr float RIGHT_BLOCK_FACE_VERTICES[] {
 	1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f
 };
 
-static constexpr float TOP_BLOCK_FACE_VERTICES[] {
+inline constexpr std::array<float, 36> TOP_BLOCK_FACE_VERTICES {
 	// top
 	1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -48,7 +48,7 @@ static constexpr float TOP_BLOCK_FACE_VERTICES[] {
 	1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
 };
 
-static constexpr float BOTTOM_BLOCK_FACE_VERTICES[] {
+inline constexpr std::array<float, 36> BOTTOM_BLOCK_FACE_VERTICES {
 	// bottom
 	0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
@@ -70,7 +70,7 @@ private:
 
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;
-	unsigned int m_indexIndex = 0;
+	unsigned int m_IndicesIndex = 0;
 
 	std::shared_ptr<std::mutex> m_MutexLock;
 
@@ -83,7 +83,7 @@ public:
 	void Unbind() const noexcept;
 
 	void Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition) noexcept;
-	void AddBlockFace(const glm::vec3& position, const float* vertices, float face) noexcept;
+	inline void AddBlockFace(const glm::vec3& position, const std::array<float, 36>& vertices, float face) noexcept;
 	void BufferMesh() noexcept;
 
 	void Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition) noexcept;
