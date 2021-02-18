@@ -34,10 +34,11 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 	if (result == GL_FALSE) {
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char*) _malloca(length * sizeof(char));
+		char* message = new char[length];
 		glGetShaderInfoLog(id, length, &length, message);
 		std::cout << "Failed to compile " << GetShaderType(type) << " shader!" << std::endl;
 		std::cout << message << std::endl;
+		delete[] message;
 		glDeleteShader(id);
 		return 0;
 	}

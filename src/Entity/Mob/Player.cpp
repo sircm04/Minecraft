@@ -129,8 +129,6 @@ void Player::Update(double deltaTime) noexcept
 			m_AccelerationY = 0.0f;
 		}
 
-		std::cout << m_VelocityY << "\n";
-
 		glm::vec3 newPosition = { m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z };
 
 		if (newPosition != m_Position)

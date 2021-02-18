@@ -1,5 +1,7 @@
 #include "../../pch.h"
-#include "Chunk.h"
+// FIXME: Including this causes preprocessor to put the
+// Chunk.h file below World.h despite it including Chunk.h
+//#include "Chunk.h"
 
 #include "../World.h"
 

@@ -9,7 +9,8 @@
 World::World() noexcept
 {
 	std::random_device rand;
-	m_Noise = siv::PerlinNoise(std::mt19937(rand()));
+	m_NoiseRandom = std::mt19937(rand());
+	m_Noise = siv::PerlinNoise(m_NoiseRandom);
 }
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
@@ -65,7 +66,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 	auto loop = [&](unsigned int radius, auto&& code)
 	{
-		Timer timer("UpdateChunks subloop finished");
+		Timer timer("World::UpdateChunks subloop");
 		std::vector<std::future<void>> futures;
 
 		int xPositiveDistance = radius + playerChunkPosition.x,
@@ -156,7 +157,7 @@ void World::SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept
 Chunk* World::GetChunk(const glm::ivec2& position) noexcept
 {
 	std::lock_guard lock(m_MutexLock);
-	auto& found = m_Chunks.find(position);
+	auto found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
 

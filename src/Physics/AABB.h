@@ -20,6 +20,6 @@ public:
 	inline glm::vec3 GetRelativeMinimum(const glm::vec3& position) const noexcept { return m_Min + position; }
 	inline glm::vec3 GetRelativeMaximum(const glm::vec3& position) const noexcept { return m_Max + position; }
 
-	glm::vec3 AABB::getVN(const glm::vec3& normal, const glm::vec3& position) const noexcept;
-	glm::vec3 AABB::getVP(const glm::vec3& normal, const glm::vec3& position) const noexcept;
+	glm::vec3 getVN(const glm::vec3& normal, const glm::vec3& position) const noexcept;
+	glm::vec3 getVP(const glm::vec3& normal, const glm::vec3& position) const noexcept;
 };

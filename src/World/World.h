@@ -16,6 +16,7 @@ private:
 	std::unordered_map<glm::ivec2, Chunk> m_Chunks;
 	std::vector<std::unique_ptr<Entity>> m_Entities;
 	siv::PerlinNoise m_Noise;
+	std::mt19937 m_NoiseRandom;
 
 	mutable std::mutex m_MutexLock;
 
