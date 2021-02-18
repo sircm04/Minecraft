@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Shader.h"
-#include "Mesh.h"
-#include "Texture.h"
-#include "ArrayTexture.h"
-#include "VertexBufferLayout.h"
-#include "Utils.h"
+#include "Renderer/Shader.h"
+#include "Renderer/Mesh.h"
+#include "Renderer/Texture.h"
+#include "Renderer/ArrayTexture.h"
+#include "Renderer/VertexBufferLayout.h"
+#include "Utils/Utils.h"
 
 namespace Assets
 {

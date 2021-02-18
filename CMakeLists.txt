@@ -35,8 +35,7 @@ target_include_directories(Minecraft PUBLIC "deps/GLFW/"
 if (MSVC)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Minecraft)
 
-    set_target_properties(Minecraft PROPERTIES COMPILE_FLAGS "/Yupch.h")
-    set_source_files_properties("src/pch.cpp" PROPERTIES COMPILE_FLAGS "/Ycpch.h")
+    target_precompile_headers(Minecraft PRIVATE "src/pch.h")
 
     target_compile_options(Minecraft PRIVATE "/W4" "/MP" "/std:c++17")
 endif()

@@ -2,7 +2,7 @@
 #include "Game.h"
 
 #include "Assets.h"
-#include "TextRenderer.h"
+#include "Renderer/TextRenderer.h"
 
 Game::~Game()
 {
