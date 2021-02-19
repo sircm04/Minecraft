@@ -84,64 +84,57 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		{
 			newPosition += m_Speed * m_Camera.up;
 		}
-		else if (!m_IsFalling)
+		else if (IsStandingOnGround())
 		{
-			m_AccelerationY = 30.0f;
+			m_AccelerationY = 0.01f;
 			m_VelocityY = 9.5f;
-			m_IsFalling = true;
 		}
 	}
 	if (m_IsFlying && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		newPosition -= m_Speed * m_Camera.up;
 
-	if (newPosition != m_Position)
-	{
-		if (!PLAYER_AABB.IntersectsBlocks(m_World, { newPosition.x, m_Position.y, m_Position.z }))
-			m_Position.x = newPosition.x;
-
-		if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y, newPosition.z }))
-			m_Position.z = newPosition.z;
-		
-		if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, newPosition.y, m_Position.z }))
-			m_Position.y = newPosition.y;
-	}
+	Move(newPosition);
 
 	m_Camera.position = m_Position;
+}
+
+void Player::Move(glm::vec3 newPosition) noexcept
+{
+	if (newPosition == m_Position)
+		return;
+
+	if (!PLAYER_AABB.IntersectsBlocks(m_World, { newPosition.x, m_Position.y, m_Position.z }))
+		m_Position.x = newPosition.x;
+
+	if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y, newPosition.z }))
+		m_Position.z = newPosition.z;
+
+	if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, newPosition.y, m_Position.z }))
+		m_Position.y = newPosition.y;
 }
 
 void Player::Update(double deltaTime) noexcept
 {
 	if (!m_IsFlying)
 	{
-		const Block* block = m_World->GetBlock(glm::floor(glm::vec3 { m_Position.x, m_Position.y + PLAYER_AABB.GetMinimum().y - 0.01f, m_Position.z }));
+		m_VelocityY = std::clamp(m_VelocityY, -100.0f, 100.0f);
 
-		if (m_IsFalling = (block && block->m_BlockType == BlockType::Air))
-		{
-			if (m_VelocityY > -100.0f && m_VelocityY < 100.0f)
-				m_VelocityY += m_AccelerationY * deltaTime;
-
-			if (m_AccelerationY > -30.0f)
-				m_AccelerationY -= 10.0f;
-		}
-		else
+		if (IsStandingOnGround())
 		{
 			m_VelocityY = 0.0f;
 			m_AccelerationY = 0.0f;
 		}
-
-		glm::vec3 newPosition = { m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z };
-
-		if (newPosition != m_Position)
+		else
 		{
-			if (!PLAYER_AABB.IntersectsBlocks(m_World, { newPosition.x, m_Position.y, m_Position.z }))
-				m_Position.x = newPosition.x;
+			m_VelocityY += m_AccelerationY;
 
-			if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y, newPosition.z }))
-				m_Position.z = newPosition.z;
-
-			if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, newPosition.y, m_Position.z }))
-				m_Position.y = newPosition.y;
+			if (m_AccelerationY > -0.01f)
+				m_AccelerationY -= 0.005f;
 		}
+
+		std::cout << m_VelocityY << ", " << m_AccelerationY << "\n";
+
+		Move({ m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z });
 	}
 
 	m_Camera.position = m_Position;
@@ -154,4 +147,11 @@ void Player::Render() const noexcept
 const inline std::optional<glm::vec3> Player::GetTargetBlockPosition(int max, bool place) const noexcept
 {
 	return m_World->GetTargetBlockPosition(m_Position, m_Camera.front, max, place);
+}
+
+const inline bool Player::IsStandingOnGround() const noexcept
+{
+	const Block* block = m_World->GetBlock(glm::floor(glm::vec3{ m_Position.x, m_Position.y + PLAYER_AABB.GetMinimum().y - 0.01f, m_Position.z }));
+
+	return (!block || block->GetBlockTypeData().isSolid);
 }

@@ -8,6 +8,11 @@ Cow::Cow(World* world, const glm::vec3& position) noexcept
 {
 }
 
+void Cow::Move(glm::vec3 newPosition) noexcept
+{
+
+}
+
 void Cow::Update(double deltaTime) noexcept
 {
 }
