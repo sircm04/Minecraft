@@ -81,13 +81,9 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		if (m_IsFlying)
-		{
 			newPosition += m_Speed * m_Camera.up;
-		}
 		else if (IsStandingOnGround())
-		{
 			m_VelocityY = 8.5f;
-		}
 	}
 	if (m_IsFlying && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		newPosition -= m_Speed * m_Camera.up;
@@ -110,21 +106,23 @@ void Player::Move(const glm::vec3& newPosition) noexcept
 
 	if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, newPosition.y, m_Position.z }))
 		m_Position.y = newPosition.y;
+	else
+	{
+		if (newPosition.y < m_Position.y)
+			m_Position.y = floor(m_Position.y) + 0.5f;
+		else
+			m_VelocityY = 0.0f;
+	}
 }
 
 void Player::Update(double deltaTime) noexcept
 {
 	if (!m_IsFlying)
 	{
-		bool onGround = IsStandingOnGround();
-
-		if (onGround)
+		if (m_VelocityY < 0.0f && IsStandingOnGround())
 			m_VelocityY = 0.0f;
-		else
-			m_VelocityY += GRAVITY * deltaTime;
 
-		// FIXME: For some reason gravity becomes glitchy and the player is unable to jump if this cout is removed...?
-		std::cout << "\n";
+		m_VelocityY += GRAVITY * deltaTime;
 
 		Move(glm::vec3 { m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z });
 	}

@@ -122,7 +122,6 @@ void Game::StartLoop()
 			lastTime = currentTime;
 
 			g_Game->GetWorld().Update(deltaTime, &g_Game->GetPlayer(), g_Game->GetPlayer().m_Position);
-			g_Game->GetPlayer().Update(deltaTime);
 		}
 	}).detach();
 
@@ -164,6 +163,7 @@ inline void Game::OnUpdate(double deltaTime)
 	glfwPollEvents();
 
 	m_Player.Input(m_Window, deltaTime);
+	m_Player.Update(deltaTime);
 }
 
 inline void Game::OnRender(int width, int height, double fps)
