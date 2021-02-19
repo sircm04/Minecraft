@@ -8,7 +8,7 @@ Cow::Cow(World* world, const glm::vec3& position) noexcept
 {
 }
 
-void Cow::Move(glm::vec3 newPosition) noexcept
+void Cow::Move(const glm::vec3& newPosition) noexcept
 {
 
 }

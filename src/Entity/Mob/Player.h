@@ -10,17 +10,19 @@ class Player : public Mob
 public:
 	static const inline AABB PLAYER_AABB = AABB({ -0.25f, -1.5f, -0.25f }, { 0.25f, 0.25f, 0.25f });
 
+	static constexpr inline float GRAVITY = -27.0f;
+
 	Camera m_Camera;
 
 	bool m_IsFlying = true;
-	float m_VelocityY = 0, m_AccelerationY = 0;
+	float m_VelocityY = 0;
 	BlockType m_BlockInHand = static_cast<BlockType>(1);
 
 	Player(World* world) noexcept;
 
 	void Input(GLFWwindow* window, double deltaTime);
 
-	virtual void Move(glm::vec3 newPosition) noexcept override;
+	virtual void Move(const glm::vec3& newPosition) noexcept override;
 	
 	virtual void Update(double deltaTime) noexcept override;
 	virtual void Render() const noexcept override;
