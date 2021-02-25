@@ -2,7 +2,6 @@
 
 #include "../../Renderer/Mesh.h"
 #include "../Block/Block.h"
-
 #include "../../Math/Frustum.h"
 
 class World;
@@ -75,6 +74,18 @@ private:
 	std::shared_ptr<std::mutex> m_MutexLock;
 
 public:
+	static const VertexBufferLayout* getLayoutInstance() {
+		static VertexBufferLayout* layoutInstance;
+		if (!layoutInstance)
+		{
+			layoutInstance = new VertexBufferLayout();
+			layoutInstance->Push<float>(3);
+			layoutInstance->Push<float>(3);
+			layoutInstance->Push<float>(3);
+		}
+		return layoutInstance;
+	}
+
 	ChunkMeshState m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 	ChunkMesh(const std::shared_ptr<std::mutex>& mutexLock) noexcept;
@@ -85,6 +96,7 @@ public:
 	void Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition) noexcept;
 	inline void AddBlockFace(const glm::vec3& position, const std::array<float, 36>& vertices, float face) noexcept;
 	void BufferMesh() noexcept;
+	void ClearMesh() noexcept;
 
 	void Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition) noexcept;
 };

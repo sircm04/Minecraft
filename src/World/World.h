@@ -42,7 +42,7 @@ public:
 	std::unordered_map<Chunk*, glm::ivec2> GetNeighboringChunks(const glm::ivec3& position) noexcept;
 	void RefreshNeighboringChunks(const glm::ivec3& position) noexcept;
 
-	bool SetBlock(const glm::ivec3& position, const Block& block) noexcept;
+	void SetBlock(const glm::ivec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::ivec3& position) noexcept;
 	const Block* GetBlock(const glm::ivec3& position) const noexcept;
 

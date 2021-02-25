@@ -16,7 +16,7 @@ class Chunk
 {
 public:
 	static inline constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16,
-		
+
 		CHUNK_WIDTH_M1 = (Chunk::CHUNK_WIDTH - 1), CHUNK_DEPTH_M1 = (Chunk::CHUNK_DEPTH - 1),
 
 		CHUNK_X_MASK = 15, CHUNK_Z_MASK = 15,
@@ -48,7 +48,7 @@ public:
 
 	static constexpr inline bool IsInBounds(const glm::ivec3& position) noexcept;
 
-	bool SetBlock(const glm::ivec3& position, const Block& block) noexcept;
+	void SetBlock(const glm::ivec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::ivec3& position) noexcept;
 	const Block* GetBlock(const glm::ivec3& position) const noexcept;
 

@@ -67,10 +67,10 @@ namespace Assets
 		sunLayout.Push<float>(3);
 
 		MESHES["SUN"] = std::make_unique<Mesh>(std::vector<float> {
-			1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-			1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f
+			0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f,
+			0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
+			0.5f, -0.5f, 0.5f, 0.5f, 0.5f, -0.5f,
+			0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f
 		}, std::vector<unsigned int> {
 			0, 1, 2, 3, 2, 1
 		}, sunLayout); // East is positive x

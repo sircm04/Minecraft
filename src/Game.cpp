@@ -95,14 +95,26 @@ void Game::Initialize()
 		});
 	});
 
-	glClearColor(0.54117f, 0.64705f, 0.96470f, 1.0f);
+	const glm::vec3 skyColor = {
+		0.49f,
+		0.67f,
+		1.0f
+	};
+
+	//const glm::vec3 bottomSkyColor = {
+	//	0.67f,
+	//	0.82f,
+	//	1.0f
+	//};
+
+	glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
 	Assets::InitializeAssets();
 
 	Assets::SHADERS["GENERIC"]->Bind();
 	Assets::SHADERS["GENERIC"]->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
 	Assets::SHADERS["GENERIC"]->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
-	Assets::SHADERS["GENERIC"]->SetVec3("fogColor", { 0.54117f, 0.64705f, 0.96470f });
+	Assets::SHADERS["GENERIC"]->SetVec3("fogColor", skyColor);
 }
 
 void Game::StartLoop()
@@ -168,8 +180,8 @@ inline void Game::OnUpdate(double deltaTime)
 
 inline void Game::OnRender(int width, int height, double fps)
 {
-	glm::mat4 guiProjection = glm::ortho(0.0f, (float) width, (float) height, 0.0f, -1.0f, 1.0f);
-	
+	glm::mat4 guiProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
+
 	if (m_World.m_FirstLoad)
 	{
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -188,7 +200,17 @@ inline void Game::OnRender(int width, int height, double fps)
 		{
 			for (uint8_t y = 0; y < dirtHeight; ++y)
 			{
-				Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { x * dirtSize, y * dirtSize, 0.0f }), { dirtSize, dirtSize, 0.0f }));
+				Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+				{
+					x * dirtSize,
+					y * dirtSize,
+					0.0f
+				}),
+				{
+					dirtSize,
+					dirtSize,
+					0.0f
+				}));
 				Assets::SHADERS["GUI"]->SetVec4("u_color", { 0.4f, 0.4f, 0.4f, 1.0f });
 				Assets::MESHES["GUI"]->Render();
 			}
@@ -202,7 +224,8 @@ inline void Game::OnRender(int width, int height, double fps)
 
 		const glm::mat4 view = glm::lookAt(m_Player.m_Camera.position,
 			m_Player.m_Camera.position + m_Player.m_Camera.front, m_Player.m_Camera.up);
-		const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov), ((float) width / (float) height), 0.1f, 5000.0f);
+		const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov),
+			(static_cast<float>(width) / static_cast<float>(height)), 0.1f, 5000.0f);
 
 		Assets::SHADERS["SUN"]->Bind();
 
@@ -211,16 +234,18 @@ inline void Game::OnRender(int width, int height, double fps)
 
 		static constexpr float sunSpeed = 0.005f;
 
-		glm::mat4 matrix = glm::translate(glm::mat4(1.0f), m_Player.m_Camera.position);
+		glm::mat4 translation = glm::translate(glm::mat4(1.0f), {
+			m_Player.m_Position.x - 0.75f,
+			m_Player.m_Position.y + (sin(glfwGetTime() * sunSpeed) * 7.5f),
+			m_Player.m_Position.z + (cos(glfwGetTime() * sunSpeed) * 7.5f)
+		});
+		glm::vec3 sunPosition = translation * glm::vec4(0, 0, 0, 1);
+		glm::mat4 lookAtMatrix = glm::inverse(glm::lookAt(sunPosition, m_Player.m_Position, { 1.0f, 0.0f, 0.0f }));
+		glm::mat4 sunMatrix = lookAtMatrix;
+		//glm::mat4 sunMatrix = glm::rotate(translation,
+		//	glm::radians(static_cast<float>(glfwGetTime()) * (sunSpeed / 0.017f)), { -1.0, 0.0, 0.0 });
 
-		matrix = glm::rotate(glm::translate(matrix,
-		{
-			0,
-			10.0f * sin(glfwGetTime() * sunSpeed),
-			7.5f * cos(glfwGetTime() * sunSpeed)
-		}), glm::radians((float) glfwGetTime() * (sunSpeed / 0.017f)), { -1.0f, 0.0f, 0.0f });
-
-		Assets::SHADERS["SUN"]->SetMat4("model", matrix);
+		Assets::SHADERS["SUN"]->SetMat4("model", sunMatrix);
 
 		Assets::ARRAY_TEXTURES["SUN"]->Bind();
 		Assets::MESHES["SUN"]->Render();
@@ -256,8 +281,9 @@ inline void Game::OnRender(int width, int height, double fps)
 		// Adjusts GUI scaling with window resizing:
 		static const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		static const float maxScalingWidth = (0.67f * mode->width), maxScalingHeight = (0.93f * (mode->height - 53)); // 1080p maximized (not fullscreen): 1280/960
-		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f, std::min((float) width / maxScalingWidth, ((float) height / maxScalingHeight))));
-		
+		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f,
+			std::min(static_cast<float>(width) / maxScalingWidth, (static_cast<float>(height) / maxScalingHeight))));
+
 		Assets::SHADERS["GUI"]->Bind();
 		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
 		Assets::MESHES["GUI"]->Bind();
@@ -265,7 +291,17 @@ inline void Game::OnRender(int width, int height, double fps)
 		Assets::TEXTURES["HEART"]->Bind();
 		for (uint8_t i = 0; i < m_Player.m_Health; ++i)
 		{
-			Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), { (2.0f * size) + (i * (8.0f * size)), height - (11.0f * size), 0.0f }), { 9.0f * size, 9.0f * size, 0.0f }));
+			Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+			{
+				(2.0f * size) + (i * (8.0f * size)),
+				height - (11.0f * size),
+				0.0f
+			}),
+			{
+				9.0f * size,
+				9.0f * size,
+				0.0f
+			}));
 			Assets::MESHES["GUI"]->Render();
 		}
 
@@ -281,9 +317,17 @@ inline void Game::OnRender(int width, int height, double fps)
 		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 
 		Assets::TEXTURES["CROSSHAIR"]->Bind();
-		glm::vec3 guiPosition = { ((float) width * 0.5f) - (4.5f * size), ((float) height * 0.5f) - (4.5f * size), 0.0f };
-		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
-			guiPosition), { 9.0f * size, 9.0f * size, 0.0f }));
+		glm::vec3 guiPosition = {
+			(static_cast<float>(width) * 0.5f) - (4.5f * size),
+			(static_cast<float>(height) * 0.5f) - (4.5f * size),
+			0.0f
+		};
+		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), guiPosition),
+		{
+			9.0f * size,
+			9.0f * size,
+			0.0f
+		}));
 		Assets::MESHES["GUI"]->Render();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

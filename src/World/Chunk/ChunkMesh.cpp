@@ -24,9 +24,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	std::lock_guard lock(*m_MutexLock);
 	m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
-	m_Vertices.clear();
-	m_Indices.clear();
-	m_IndicesIndex = 0;
+	ClearMesh();
 
 	const Chunk* frontChunk = world->GetChunk({ chunkPosition.x, chunkPosition.y + 1 });
 	const Chunk* rightChunk = world->GetChunk({ chunkPosition.x + 1, chunkPosition.y });
@@ -114,18 +112,17 @@ void ChunkMesh::BufferMesh() noexcept
 {
 	std::lock_guard lock(*m_MutexLock);
 
-	VertexBufferLayout layout;
-	layout.Push<float>(3);
-	layout.Push<float>(3);
-	layout.Push<float>(3);
-	
-	m_Mesh = std::make_unique<Mesh>(m_Vertices, m_Indices, layout);
-	
+	m_Mesh = std::make_unique<Mesh>(m_Vertices, m_Indices, *getLayoutInstance());
+	ClearMesh();
+
+	m_ChunkMeshState = ChunkMeshState::Complete;
+}
+
+void ChunkMesh::ClearMesh() noexcept
+{
 	m_Vertices.clear();
 	m_Indices.clear();
 	m_IndicesIndex = 0;
-
-	m_ChunkMeshState = ChunkMeshState::Complete;
 }
 
 void ChunkMesh::Render(const ViewFrustum& frustum, const glm::ivec2& chunkPosition, const glm::vec3& playerPosition) noexcept

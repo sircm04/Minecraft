@@ -60,10 +60,8 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	}
 
 	for (uint8_t i = 1; i < maxBlockTypeKeys; ++i)
-	{
 		if (glfwGetKey(window, GLFW_KEY_0 + i) == GLFW_PRESS)
 			m_BlockInHand = static_cast<BlockType>(i);
-	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		m_Speed *= ((m_IsFlying) ? 5.0f : 1.5f);

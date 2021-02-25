@@ -60,29 +60,24 @@ constexpr inline bool Chunk::IsInBounds(const glm::ivec3& position) noexcept
 		&& position.z >= 0 && position.z < Chunk::CHUNK_DEPTH);
 }
 
-bool Chunk::SetBlock(const glm::ivec3& position, const Block& block) noexcept
+constexpr uint16_t positionToIndex(const glm::ivec3& position) noexcept
 {
-	if (!IsInBounds(position))
-		return false;
+	return static_cast<uint16_t>(position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT);
+}
 
-	m_Blocks[position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT] = block;
-	return true;
+void Chunk::SetBlock(const glm::ivec3& position, const Block& block) noexcept
+{
+	m_Blocks[positionToIndex(position)] = block;
 }
 
 Block* Chunk::GetBlock(const glm::ivec3& position) noexcept
 {
-	if (IsInBounds(position))
-		return &m_Blocks[position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT];
-
-	return nullptr;
+	return ((IsInBounds(position)) ? &m_Blocks[positionToIndex(position)] : nullptr);
 }
 
 const Block* Chunk::GetBlock(const glm::ivec3& position) const noexcept
 {
-	if (IsInBounds(position))
-		return &m_Blocks[position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT];
-
-	return nullptr;
+	return ((IsInBounds(position)) ? &m_Blocks[positionToIndex(position)] : nullptr);
 }
 
 int Chunk::GetHighestBlockYPosition(int x, int z) const noexcept

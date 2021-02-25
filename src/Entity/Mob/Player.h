@@ -14,7 +14,7 @@ public:
 
 	Camera m_Camera;
 
-	bool m_IsFlying = true;
+	bool m_IsFlying = false;
 	float m_VelocityY = 0;
 	BlockType m_BlockInHand = static_cast<BlockType>(1);
 

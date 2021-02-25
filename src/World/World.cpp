@@ -103,7 +103,9 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		int y = GetHighestBlockYPosition(floor(glm::vec2{ player->m_Position.x, player->m_Position.z }));
 		if (y != -1)
 		{
+			player->m_Position.x += 0.5f;
 			player->m_Position.y = (y + 2.5f);
+			player->m_Position.z += 0.5f;
 			AddEntity<Cow>(this, player->m_Position);
 		}
 	}
@@ -196,34 +198,22 @@ void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 		it->first->GenerateMesh(this, it->second);
 }
 
-bool World::SetBlock(const glm::ivec3& position, const Block& block) noexcept
+void World::SetBlock(const glm::ivec3& position, const Block& block) noexcept
 {
 	Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
-
-	if (chunk)
-		return chunk->SetBlock(GetBlockPositionInChunk(position), block);
-
-	return false;
+	chunk->SetBlock(GetBlockPositionInChunk(position), block);
 }
 
 Block* World::GetBlock(const glm::ivec3& position) noexcept
 {
 	Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
-
-	if (chunk)
-		return chunk->GetBlock(GetBlockPositionInChunk(position));
-
-	return nullptr;
+	return ((chunk) ? chunk->GetBlock(GetBlockPositionInChunk(position)) : nullptr);
 }
 
 const Block* World::GetBlock(const glm::ivec3& position) const noexcept
 {
 	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
-
-	if (chunk)
-		return chunk->GetBlock(GetBlockPositionInChunk(position));
-
-	return nullptr;
+	return ((chunk) ? chunk->GetBlock(GetBlockPositionInChunk(position)) : nullptr);
 }
 
 int World::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
