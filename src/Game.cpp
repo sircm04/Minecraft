@@ -242,8 +242,6 @@ inline void Game::OnRender(int width, int height, double fps)
 		glm::vec3 sunPosition = translation * glm::vec4(0, 0, 0, 1);
 		glm::mat4 lookAtMatrix = glm::inverse(glm::lookAt(sunPosition, m_Player.m_Position, { 1.0f, 0.0f, 0.0f }));
 		glm::mat4 sunMatrix = lookAtMatrix;
-		//glm::mat4 sunMatrix = glm::rotate(translation,
-		//	glm::radians(static_cast<float>(glfwGetTime()) * (sunSpeed / 0.017f)), { -1.0, 0.0, 0.0 });
 
 		Assets::SHADERS["SUN"]->SetMat4("model", sunMatrix);
 

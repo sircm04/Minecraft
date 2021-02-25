@@ -33,7 +33,7 @@ public:
 	void UpdateEntities(double deltaTime);
 
 	static const glm::ivec2 GetChunkPositionFromBlock(const glm::ivec2& position) noexcept;
-	static const glm::ivec3 GetBlockPositionInChunk(const glm::ivec3& position) noexcept;
+	static const glm::uvec3 GetBlockPositionInChunk(const glm::ivec3& position) noexcept;
 
 	void SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept;
 	Chunk* GetChunk(const glm::ivec2& position) noexcept;

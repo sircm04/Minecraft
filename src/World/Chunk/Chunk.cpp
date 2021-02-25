@@ -53,29 +53,29 @@ void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition) no
 	m_ChunkMesh.Generate(this, world, chunkPosition);
 }
 
-constexpr inline bool Chunk::IsInBounds(const glm::ivec3& position) noexcept
+constexpr inline bool Chunk::IsInBounds(const glm::uvec3& position) noexcept
 {
 	return (position.x >= 0 && position.x < Chunk::CHUNK_WIDTH
 		&& position.y >= 0 && position.y < Chunk::CHUNK_HEIGHT
 		&& position.z >= 0 && position.z < Chunk::CHUNK_DEPTH);
 }
 
-constexpr uint16_t positionToIndex(const glm::ivec3& position) noexcept
+constexpr uint16_t positionToIndex(const glm::uvec3& position) noexcept
 {
-	return static_cast<uint16_t>(position.x + position.y * Chunk::CHUNK_WIDTH + position.z * Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT);
+	return (static_cast<uint16_t>(position.y) << 8) | (static_cast<uint16_t>(position.z) << 4) | position.x;
 }
 
-void Chunk::SetBlock(const glm::ivec3& position, const Block& block) noexcept
+void Chunk::SetBlock(const glm::uvec3& position, const Block& block) noexcept
 {
 	m_Blocks[positionToIndex(position)] = block;
 }
 
-Block* Chunk::GetBlock(const glm::ivec3& position) noexcept
+Block* Chunk::GetBlock(const glm::uvec3& position) noexcept
 {
 	return ((IsInBounds(position)) ? &m_Blocks[positionToIndex(position)] : nullptr);
 }
 
-const Block* Chunk::GetBlock(const glm::ivec3& position) const noexcept
+const Block* Chunk::GetBlock(const glm::uvec3& position) const noexcept
 {
 	return ((IsInBounds(position)) ? &m_Blocks[positionToIndex(position)] : nullptr);
 }

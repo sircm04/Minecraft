@@ -46,11 +46,11 @@ public:
 
 	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept;
 
-	static constexpr inline bool IsInBounds(const glm::ivec3& position) noexcept;
+	static constexpr inline bool IsInBounds(const glm::uvec3& position) noexcept;
 
-	void SetBlock(const glm::ivec3& position, const Block& block) noexcept;
-	Block* GetBlock(const glm::ivec3& position) noexcept;
-	const Block* GetBlock(const glm::ivec3& position) const noexcept;
+	void SetBlock(const glm::uvec3& position, const Block& block) noexcept;
+	Block* GetBlock(const glm::uvec3& position) noexcept;
+	const Block* GetBlock(const glm::uvec3& position) const noexcept;
 
 	int GetHighestBlockYPosition(int x, int z) const noexcept;
 

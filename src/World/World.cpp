@@ -141,7 +141,7 @@ const glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position) no
 	};
 }
 
-const glm::ivec3 World::GetBlockPositionInChunk(const glm::ivec3& position) noexcept
+const glm::uvec3 World::GetBlockPositionInChunk(const glm::ivec3& position) noexcept
 {
 	return {
 		(position.x & Chunk::CHUNK_X_MASK),
@@ -175,18 +175,18 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	std::unordered_map<Chunk*, glm::ivec2> chunks;
 
 	const glm::ivec2 chunkPosition = GetChunkPositionFromBlock({ position.x, position.z });
-	const glm::ivec3 inChunkPosition = GetBlockPositionInChunk(position);
+	const glm::uvec3 inChunkPosition = GetBlockPositionInChunk(position);
 
-	auto test = [&](bool boolean, glm::ivec2 chunkPos)
+	auto emplaceif = [&](bool boolean, glm::ivec2 chunkPos)
 	{
 		if (boolean)
 			chunks.emplace(GetChunk(chunkPos), chunkPos);
 	};
 	
-	test(inChunkPosition.x == 0, { chunkPosition.x - 1, chunkPosition.y });
-	test(inChunkPosition.z == 0, { chunkPosition.x, chunkPosition.y - 1 });
-	test(inChunkPosition.x == Chunk::CHUNK_WIDTH, { chunkPosition.x + 1, chunkPosition.y });
-	test(inChunkPosition.z == Chunk::CHUNK_DEPTH, { chunkPosition.x, chunkPosition.y + 1});
+	emplaceif(inChunkPosition.x == 0, { chunkPosition.x - 1, chunkPosition.y });
+	emplaceif(inChunkPosition.z == 0, { chunkPosition.x, chunkPosition.y - 1 });
+	emplaceif(inChunkPosition.x == Chunk::CHUNK_WIDTH, { chunkPosition.x + 1, chunkPosition.y });
+	emplaceif(inChunkPosition.z == Chunk::CHUNK_DEPTH, { chunkPosition.x, chunkPosition.y + 1});
 	
 	return chunks;
 }
