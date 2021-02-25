@@ -30,7 +30,7 @@ bool Game::CreateWindowAndContext(const std::string& title, unsigned int width, 
 
 	glfwMakeContextCurrent(m_Window);
 
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	const int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 	if (!status)

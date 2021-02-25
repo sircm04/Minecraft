@@ -136,17 +136,17 @@ void World::UpdateEntities(double deltaTime)
 const glm::ivec2 World::GetChunkPositionFromBlock(const glm::ivec2& position) noexcept
 {
 	return {
-		(position.x >> Chunk::CHUNK_X_SHIFT),
-		(position.y >> Chunk::CHUNK_Z_SHIFT)
+		(position.x >> 4),
+		(position.y >> 4)
 	};
 }
 
 const glm::uvec3 World::GetBlockPositionInChunk(const glm::ivec3& position) noexcept
 {
 	return {
-		(position.x & Chunk::CHUNK_X_MASK),
+		(position.x & 15),
 		position.y,
-		(position.z & Chunk::CHUNK_Z_MASK)
+		(position.z & 15)
 	};
 }
 

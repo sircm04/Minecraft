@@ -29,7 +29,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	const Chunk* frontChunk = world->GetChunk({ chunkPosition.x, chunkPosition.y + 1 });
 	const Chunk* rightChunk = world->GetChunk({ chunkPosition.x + 1, chunkPosition.y });
 
-	const glm::ivec2 realChunkPosition = { chunkPosition.x << Chunk::CHUNK_X_SHIFT, chunkPosition.y << Chunk::CHUNK_Z_SHIFT };
+	const glm::ivec2 realChunkPosition = { chunkPosition.x << 4, chunkPosition.y << 4 };
 	bool xNotFinished;
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
@@ -45,11 +45,11 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 				const glm::ivec3 frontBlockPosition = { x, y, z + 1 };
 				const glm::ivec3 rightBlockPosition = { x + 1, y, z };
 				const glm::ivec3 topBlockPosition = { x, y + 1, z };
-				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH_M1 || !frontChunk) ? chunk->GetBlock(frontBlockPosition) : frontChunk->GetBlock({
+				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH_M1 || !frontChunk) ? chunk->GetBlockInBounds(frontBlockPosition) : frontChunk->GetBlockInBounds({
 					frontBlockPosition.x, frontBlockPosition.y, 0 }));
-				const Block* rightBlock = ((xNotFinished || !rightChunk) ? chunk->GetBlock(rightBlockPosition) : rightChunk->GetBlock({
+				const Block* rightBlock = ((xNotFinished || !rightChunk) ? chunk->GetBlockInBounds(rightBlockPosition) : rightChunk->GetBlockInBounds({
 					0, rightBlockPosition.y, rightBlockPosition.z }));
-				const Block* topBlock = chunk->GetBlock(topBlockPosition);
+				const Block* topBlock = chunk->GetBlockInBounds(topBlockPosition);
 
 				if (block->m_BlockType != BlockType::Air)
 				{

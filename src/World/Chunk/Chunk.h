@@ -16,12 +16,7 @@ class Chunk
 {
 public:
 	static inline constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16,
-
 		CHUNK_WIDTH_M1 = (Chunk::CHUNK_WIDTH - 1), CHUNK_DEPTH_M1 = (Chunk::CHUNK_DEPTH - 1),
-
-		CHUNK_X_MASK = 15, CHUNK_Z_MASK = 15,
-		CHUNK_X_SHIFT = 4, CHUNK_Z_SHIFT = 4,
-
 		GRASS_HEIGHT = (Chunk::CHUNK_HEIGHT - 171);
 
 	static inline constexpr uint16_t CHUNK_BLOCKS = Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH;
@@ -46,11 +41,13 @@ public:
 
 	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept;
 
-	static constexpr inline bool IsInBounds(const glm::uvec3& position) noexcept;
+	static constexpr inline bool Chunk::IsInBounds(const glm::uvec3& position) noexcept;
 
 	void SetBlock(const glm::uvec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::uvec3& position) noexcept;
 	const Block* GetBlock(const glm::uvec3& position) const noexcept;
+	Block* GetBlockInBounds(const glm::uvec3& position) noexcept;
+	const Block* GetBlockInBounds(const glm::uvec3& position) const noexcept;
 
 	int GetHighestBlockYPosition(int x, int z) const noexcept;
 
