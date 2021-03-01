@@ -16,9 +16,9 @@ namespace Assets
 
 	static void InitializeAssets()
 	{
-		SHADERS["GENERIC"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
-			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Lighting.vert") },
-			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Lighting.frag") }
+		SHADERS["BLOCK"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
+			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Block.vert") },
+			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Block.frag") }
 		});
 
 		SHADERS["ENTITY"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {

@@ -15,11 +15,7 @@ enum class ChunkState : uint8_t
 class Chunk
 {
 public:
-	static inline constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16,
-		CHUNK_WIDTH_M1 = (Chunk::CHUNK_WIDTH - 1), CHUNK_DEPTH_M1 = (Chunk::CHUNK_DEPTH - 1),
-		GRASS_HEIGHT = (Chunk::CHUNK_HEIGHT - 171);
-
-	static inline constexpr uint16_t CHUNK_BLOCKS = Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH;
+	static constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16;
 
 private:
 	std::vector<Block> m_Blocks;
@@ -27,6 +23,11 @@ private:
 	ChunkState m_ChunkState = ChunkState::Ungenerated;
 
 	std::shared_ptr<std::mutex> m_MutexLock;
+
+	static constexpr uint16_t Chunk::PositionToIndex(const glm::uvec3& position) noexcept
+	{
+		return (static_cast<uint16_t>(position.y) << 8) | (static_cast<uint16_t>(position.z) << 4) | static_cast<uint16_t>(position.x);
+	}
 
 public:
 	ChunkMesh m_ChunkMesh;
@@ -41,7 +42,12 @@ public:
 
 	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept;
 
-	static constexpr inline bool Chunk::IsInBounds(const glm::uvec3& position) noexcept;
+	static constexpr bool Chunk::IsInBounds(const glm::uvec3& position) noexcept
+	{
+		return (position.x >= 0 && position.x < Chunk::CHUNK_WIDTH
+			&& position.y >= 0 && position.y < Chunk::CHUNK_HEIGHT
+			&& position.z >= 0 && position.z < Chunk::CHUNK_DEPTH);
+	}
 
 	void SetBlock(const glm::uvec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::uvec3& position) noexcept;
