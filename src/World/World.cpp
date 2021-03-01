@@ -26,7 +26,7 @@ void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosi
 	UpdateEntities(deltaTime);
 }
 
-void World::RenderChunks(const ViewFrustum& frustum, const glm::vec3& playerPosition)
+void World::RenderChunks(const ViewFrustum& frustum)
 {
 	auto it = m_Chunks.begin();
 	while (it != m_Chunks.end())
@@ -43,7 +43,7 @@ void World::RenderChunks(const ViewFrustum& frustum, const glm::vec3& playerPosi
 			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
 			{
 				it->second.m_ChunkMesh.Bind();
-				it->second.m_ChunkMesh.Render(frustum, it->first, playerPosition);
+				it->second.m_ChunkMesh.Render(frustum, it->first);
 			}
 
 			++it;
@@ -74,7 +74,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			xNegativeDistance = -radius + playerChunkPosition.x,
 			zNegativeDistance = -radius + playerChunkPosition.y;
 
-		const float radius2 = radius * radius;
+		const float radius2 = static_cast<float>(radius * radius);
 
 		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
 			futures.push_back(std::async(std::launch::async, code, x, zNegativeDistance, zPositiveDistance, radius2, playerChunkPosition));
@@ -100,7 +100,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 	if (m_FirstLoad)
 	{
 		m_FirstLoad = false;
-		int y = GetHighestBlockYPosition(floor(glm::vec2{ player->m_Position.x, player->m_Position.z }));
+		int y = GetHighestBlockYPosition(floor(glm::vec2 { player->m_Position.x, player->m_Position.z }));
 		if (y != -1)
 		{
 			player->m_Position.x += 0.5f;
@@ -182,11 +182,18 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 		if (boolean)
 			chunks.emplace(GetChunk(chunkPos), chunkPos);
 	};
-	
-	emplaceif(inChunkPosition.x == 0, { chunkPosition.x - 1, chunkPosition.y });
-	emplaceif(inChunkPosition.z == 0, { chunkPosition.x, chunkPosition.y - 1 });
-	emplaceif(inChunkPosition.x == Chunk::CHUNK_WIDTH, { chunkPosition.x + 1, chunkPosition.y });
-	emplaceif(inChunkPosition.z == Chunk::CHUNK_DEPTH, { chunkPosition.x, chunkPosition.y + 1});
+
+	bool xAtMin = (inChunkPosition.x) == 0, xAtMax = (Chunk::CHUNK_WIDTH - 1),
+		zAtMin = (inChunkPosition.z) == 0, zAtMax = (Chunk::CHUNK_DEPTH - 1);
+
+	emplaceif(xAtMin, { chunkPosition.x - 1, chunkPosition.y });
+	emplaceif(zAtMin, { chunkPosition.x, chunkPosition.y - 1 });
+	emplaceif(xAtMax, { chunkPosition.x + 1, chunkPosition.y });
+	emplaceif(zAtMax, { chunkPosition.x, chunkPosition.y + 1 });
+	emplaceif(xAtMin && zAtMin, { chunkPosition.x - 1, chunkPosition.y - 1 });
+	emplaceif(xAtMax && zAtMax, { chunkPosition.x + 1, chunkPosition.y + 1 });
+	emplaceif(xAtMin && zAtMax, { chunkPosition.x - 1, chunkPosition.y + 1 });
+	emplaceif(xAtMax && zAtMin, { chunkPosition.x + 1, chunkPosition.y - 1 });
 	
 	return chunks;
 }
@@ -194,8 +201,12 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 {
 	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
-	for (auto it = neighboringChunks.begin(); it != neighboringChunks.end(); ++it)
-		it->first->GenerateMesh(this, it->second);
+	std::cout << "\n";
+	for (auto it : neighboringChunks)
+	{
+		it.first->GenerateMesh(this, it.second);
+		std::cout << it.second.x << ", " << it.second.y << "\n";
+	}
 }
 
 void World::SetBlock(const glm::ivec3& position, const Block& block) noexcept
@@ -259,7 +270,7 @@ const std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position
 			if (place)
 			{
 				glm::vec3 normal;
-				for (int i = 0; i < 3; ++i) {
+				for (uint8_t i = 0; i < 3; ++i) {
 					normal[i] = (t == tvec[i]);
 					if (sign[i]) normal[i] = -normal[i];
 				}

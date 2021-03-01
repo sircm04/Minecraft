@@ -15,7 +15,7 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 	std::lock_guard lock(*m_MutexLock);
 	m_ChunkState = ChunkState::Ungenerated;
 
-	m_Blocks.resize(CHUNK_BLOCKS);
+	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
 
 	int realChunkX = (chunkPosition.x * Chunk::CHUNK_WIDTH),
 		realChunkZ = (chunkPosition.y * Chunk::CHUNK_DEPTH);
@@ -24,14 +24,15 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 	{
 		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 		{
-			const double random = noise->noise0_1(((realChunkX + x) * 0.025),
-				((realChunkZ + z) * 0.025)) * 50;
-			static constexpr uint8_t grassHeightD2 = (Chunk::GRASS_HEIGHT >> 2);
-			const uint8_t grassHeight = grassHeightD2 + random, dirtHeight = (grassHeight - 3);
+			const double random = noise->noise0_1(((realChunkX + x) * 0.025), ((realChunkZ + z) * 0.025)) * 50;
+			const uint8_t grassHeight = (static_cast<uint8_t>(Chunk::CHUNK_HEIGHT * 0.33f) >> 2) + random,
+				dirtHeight = (grassHeight - 3);
 
 			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
 			{
-				if (y > grassHeight)
+				if ((x == 0 || z == 0 || x == (Chunk::CHUNK_WIDTH - 1) || z == (Chunk::CHUNK_DEPTH - 1)) && y <= grassHeight)
+					SetBlock({ x, y, z }, { BlockType::Stone });
+				else if (y > grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Air });
 				else if (y == grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Grass });
@@ -51,18 +52,6 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept
 {
 	m_ChunkMesh.Generate(this, world, chunkPosition);
-}
-
-constexpr inline bool Chunk::IsInBounds(const glm::uvec3& position) noexcept
-{
-	return (position.x >= 0 && position.x < Chunk::CHUNK_WIDTH
-		&& position.y >= 0 && position.y < Chunk::CHUNK_HEIGHT
-		&& position.z >= 0 && position.z < Chunk::CHUNK_DEPTH);
-}
-
-constexpr inline uint16_t PositionToIndex(const glm::uvec3& position) noexcept
-{
-	return (static_cast<uint16_t>(position.y) << 8) | (static_cast<uint16_t>(position.z) << 4) | position.x;
 }
 
 void Chunk::SetBlock(const glm::uvec3& position, const Block& block) noexcept

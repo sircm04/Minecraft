@@ -111,10 +111,9 @@ void Game::Initialize()
 
 	Assets::InitializeAssets();
 
-	Assets::SHADERS["GENERIC"]->Bind();
-	Assets::SHADERS["GENERIC"]->SetVec3("lightColor", { 1.0f, 1.0f, 1.0f });
-	Assets::SHADERS["GENERIC"]->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
-	Assets::SHADERS["GENERIC"]->SetVec3("fogColor", skyColor);
+	Assets::SHADERS["BLOCK"]->Bind();
+	Assets::SHADERS["BLOCK"]->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
+	Assets::SHADERS["BLOCK"]->SetVec3("fogColor", skyColor);
 }
 
 void Game::StartLoop()
@@ -250,21 +249,21 @@ inline void Game::OnRender(int width, int height, double fps)
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		Assets::SHADERS["GENERIC"]->Bind();
+		Assets::SHADERS["BLOCK"]->Bind();
 		Assets::ARRAY_TEXTURES["BLOCKS"]->Bind();
 
-		Assets::SHADERS["GENERIC"]->SetMat4("view", view);
-		Assets::SHADERS["GENERIC"]->SetMat4("projection", projection);
-		Assets::SHADERS["GENERIC"]->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
+		Assets::SHADERS["BLOCK"]->SetMat4("view", view);
+		Assets::SHADERS["BLOCK"]->SetMat4("projection", projection);
+		Assets::SHADERS["BLOCK"]->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
 
-		//Assets::SHADERS["GENERIC"]->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
-		//Assets::SHADERS["GENERIC"]->SetVec3("viewPos", m_Player.m_Camera.position);
+		//Assets::SHADERS["BLOCK"]->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
+		//Assets::SHADERS["BLOCK"]->SetVec3("viewPos", m_Player.m_Camera.position);
 
-		Assets::SHADERS["GENERIC"]->SetVec3("playerPosition", m_Player.m_Position);
+		Assets::SHADERS["BLOCK"]->SetVec3("playerPosition", m_Player.m_Position);
 
 		static ViewFrustum frustum;
 		frustum.Update(projection * view);
-		m_World.RenderChunks(frustum, m_Player.m_Position);
+		m_World.RenderChunks(frustum);
 
 		Assets::SHADERS["ENTITY"]->Bind();
 		Assets::SHADERS["ENTITY"]->SetMat4("view", view);
@@ -304,7 +303,10 @@ inline void Game::OnRender(int width, int height, double fps)
 		}
 
 		std::stringstream ss;
-		ss << "FPS: " << fps;
+		ss << "FPS: " << fps << ", POS: " <<
+			static_cast<int>(m_Player.m_Position.x) << ", " <<
+			static_cast<int>(m_Player.m_Position.y) << ", " <<
+			static_cast<int>(m_Player.m_Position.z);
 
 		TextRenderer::Begin();
 		TextRenderer::DrawText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);

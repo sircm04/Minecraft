@@ -26,7 +26,7 @@ public:
 	World() noexcept;
 
 	void Update(double deltaTime, Player* player, const glm::vec3& playerPosition);
-	void RenderChunks(const ViewFrustum& frustum, const glm::vec3& playerPosition);
+	void RenderChunks(const ViewFrustum& frustum);
 	void RenderEntities();
 
 	void UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition);
