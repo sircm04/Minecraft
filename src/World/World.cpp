@@ -177,23 +177,22 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	const glm::ivec2 chunkPosition = GetChunkPositionFromBlock({ position.x, position.z });
 	const glm::uvec3 inChunkPosition = GetBlockPositionInChunk(position);
 
-	auto emplaceif = [&](bool boolean, glm::ivec2 chunkPos)
-	{
-		if (boolean)
-			chunks.emplace(GetChunk(chunkPos), chunkPos);
-	};
-
 	bool xAtMin = (inChunkPosition.x) == 0, xAtMax = (Chunk::CHUNK_WIDTH - 1),
 		zAtMin = (inChunkPosition.z) == 0, zAtMax = (Chunk::CHUNK_DEPTH - 1);
 
-	emplaceif(xAtMin, { chunkPosition.x - 1, chunkPosition.y });
-	emplaceif(zAtMin, { chunkPosition.x, chunkPosition.y - 1 });
-	emplaceif(xAtMax, { chunkPosition.x + 1, chunkPosition.y });
-	emplaceif(zAtMax, { chunkPosition.x, chunkPosition.y + 1 });
-	emplaceif(xAtMin && zAtMin, { chunkPosition.x - 1, chunkPosition.y - 1 });
-	emplaceif(xAtMax && zAtMax, { chunkPosition.x + 1, chunkPosition.y + 1 });
-	emplaceif(xAtMin && zAtMax, { chunkPosition.x - 1, chunkPosition.y + 1 });
-	emplaceif(xAtMax && zAtMin, { chunkPosition.x + 1, chunkPosition.y - 1 });
+	constexpr glm::ivec3 offs[] = {
+		{-1,  0, 0b01}, { 0, -1, 0b10},
+		{ 1,  0, 0b01}, { 0,  1, 0b10},
+		{-1, -1, 0b11}, { 1,  1, 0b11},
+		{-1,  1, 0b11}, { 1, -1, 0b11}
+	};
+
+	for (auto off : offs) {
+		auto target = chunkPosition + glm::ivec2 { off };
+
+		if ((!(off.z & 1) || xAtMax) && (!(off.z & 2) || zAtMax))
+			chunks.emplace(GetChunk(target), target);
+	}
 	
 	return chunks;
 }

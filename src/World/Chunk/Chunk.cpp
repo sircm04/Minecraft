@@ -30,9 +30,7 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 
 			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
 			{
-				if ((x == 0 || z == 0 || x == (Chunk::CHUNK_WIDTH - 1) || z == (Chunk::CHUNK_DEPTH - 1)) && y <= grassHeight)
-					SetBlock({ x, y, z }, { BlockType::Stone });
-				else if (y > grassHeight)
+				if (y > grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Air });
 				else if (y == grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Grass });
