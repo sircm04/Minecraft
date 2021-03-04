@@ -139,12 +139,5 @@ const inline std::optional<glm::vec3> Player::GetTargetBlockPosition(int max, bo
 
 const inline bool Player::IsStandingOnGround() const noexcept
 {
-	const Block* block = m_World->GetBlock(glm::floor(glm::vec3
-	{
-		m_Position.x,
-		m_Position.y + PLAYER_AABB.GetMinimum().y - 0.01f,
-		m_Position.z
-	}));
-
-	return (!block || block->GetBlockTypeData().isSolid);
+	return PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y - 0.01f, m_Position.z });
 }
