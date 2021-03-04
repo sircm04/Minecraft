@@ -28,25 +28,15 @@ void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosi
 
 void World::RenderChunks(const ViewFrustum& frustum)
 {
-	auto it = m_Chunks.begin();
-	while (it != m_Chunks.end())
+	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
 	{
-		if (*it->second.GetChunkState() == ChunkState::Removed)
-		{
-			it = m_Chunks.erase(it);
-		}
-		else
-		{
-			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Generated)
-				it->second.m_ChunkMesh.BufferMesh();
+		if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Generated)
+			it->second.m_ChunkMesh.BufferMesh();
 
-			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-			{
-				it->second.m_ChunkMesh.Bind();
-				it->second.m_ChunkMesh.Render(frustum, it->first);
-			}
-
-			++it;
+		if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+		{
+			it->second.m_ChunkMesh.Bind();
+			it->second.m_ChunkMesh.Render(frustum, it->first);
 		}
 	}
 }
@@ -61,8 +51,13 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
 	static constexpr unsigned int worldOuterRadius2 = WORLD_OUTER_RADIUS * WORLD_OUTER_RADIUS;
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
+	{
 		if (ceil(glm::distance2(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= worldOuterRadius2)
-			it->second.SetRemoved();
+		{
+			std::lock_guard lock(m_MutexLock);
+			it = m_Chunks.erase(it);
+		}
+	}
 
 	auto loop = [&](unsigned int radius, auto&& code)
 	{
@@ -158,14 +153,12 @@ void World::SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept
 
 Chunk* World::GetChunk(const glm::ivec2& position) noexcept
 {
-	std::lock_guard lock(m_MutexLock);
-	auto found = m_Chunks.find(position);
+	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
 
 const Chunk* World::GetChunk(const glm::ivec2& position) const noexcept
 {
-	std::lock_guard lock(m_MutexLock);
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
@@ -181,10 +174,10 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 		zAtMin = (inChunkPosition.z) == 0, zAtMax = (Chunk::CHUNK_DEPTH - 1);
 
 	constexpr glm::ivec3 offs[] = {
-		{-1,  0, 0b01}, { 0, -1, 0b10},
-		{ 1,  0, 0b01}, { 0,  1, 0b10},
-		{-1, -1, 0b11}, { 1,  1, 0b11},
-		{-1,  1, 0b11}, { 1, -1, 0b11}
+		{-1,  0, 0b01 }, { 0, -1, 0b10 },
+		{ 1,  0, 0b01 }, { 0,  1, 0b10 },
+		{-1, -1, 0b11 }, { 1,  1, 0b11 },
+		{-1,  1, 0b11 }, { 1, -1, 0b11 }
 	};
 
 	for (auto off : offs) {
@@ -200,12 +193,8 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 {
 	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
-	std::cout << "\n";
-	for (auto it : neighboringChunks)
-	{
-		it.first->GenerateMesh(this, it.second);
-		std::cout << it.second.x << ", " << it.second.y << "\n";
-	}
+	for (auto element : neighboringChunks)
+		element.first->GenerateMesh(this, element.second);
 }
 
 void World::SetBlock(const glm::ivec3& position, const Block& block) noexcept

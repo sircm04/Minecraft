@@ -7,7 +7,6 @@ class World;
 
 enum class ChunkState : uint8_t
 {
-	Removed,
 	Ungenerated,
 	Generated
 };
@@ -21,8 +20,6 @@ private:
 	std::vector<Block> m_Blocks;
 
 	ChunkState m_ChunkState = ChunkState::Ungenerated;
-
-	std::shared_ptr<std::mutex> m_MutexLock;
 
 	static constexpr uint16_t Chunk::PositionToIndex(const glm::uvec3& position) noexcept
 	{
@@ -58,6 +55,4 @@ public:
 	int GetHighestBlockYPosition(int x, int z) const noexcept;
 
 	inline const ChunkState* GetChunkState() const noexcept { return &m_ChunkState; }
-
-	void SetRemoved() noexcept { m_ChunkState = ChunkState::Removed; }
 };

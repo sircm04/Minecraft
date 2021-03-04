@@ -4,8 +4,7 @@
 #include "../World.h"
 #include "Chunk.h"
 
-ChunkMesh::ChunkMesh(const std::shared_ptr<std::mutex>& mutexLock) noexcept
-	: m_MutexLock(mutexLock)
+ChunkMesh::ChunkMesh() noexcept
 {
 }
 
@@ -21,7 +20,6 @@ void ChunkMesh::Unbind() const noexcept
 
 void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition) noexcept
 {
-	std::lock_guard lock(*m_MutexLock);
 	m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
 	ClearMesh();
@@ -85,7 +83,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	m_ChunkMeshState = ChunkMeshState::Generated;
 }
 
-bool ChunkMesh::DoesBlockExist(const World* world, glm::vec3 position)
+bool ChunkMesh::DoesBlockExist(const World* world, glm::vec3 position) noexcept
 {
 	const Block* block = world->GetBlock(position);
 	return ((block) ? block->GetBlockTypeData().isSolid : false);
@@ -146,8 +144,6 @@ void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, cons
 
 void ChunkMesh::BufferMesh() noexcept
 {
-	std::lock_guard lock(*m_MutexLock);
-
 	m_Mesh = std::make_unique<Mesh>(m_Vertices, m_Indices, *getLayoutInstance());
 	ClearMesh();
 
