@@ -136,7 +136,6 @@ void Game::StartLoop()
 			g_Game->GetWorld().Update(deltaTime, &g_Game->GetPlayer(), g_Game->GetPlayer().m_Position);
 		}
 	});
-	m_Thread.detach();
 
 	while (!glfwWindowShouldClose(m_Window))
 	{
