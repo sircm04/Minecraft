@@ -9,6 +9,7 @@ private:
 	GLFWwindow* m_Window;
 	std::string m_WindowTitle;
 	
+	std::thread m_Thread;
 	bool m_IsRunning = false;
 
 	World m_World;

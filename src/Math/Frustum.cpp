@@ -3,7 +3,8 @@
 
 #include "../Physics/AABB.h"
 
-enum Planes {
+enum Planes
+{
     Near,
     Far,
     Left,
@@ -49,7 +50,8 @@ void ViewFrustum::Update(const glm::mat4& mat) noexcept
     m_Planes[Planes::Far].normal.z = mat[2][3] - mat[2][2];
     m_Planes[Planes::Far].distanceToOrigin = mat[3][3] - mat[3][2];
 
-    for (auto& plane : m_Planes) {
+    for (auto& plane : m_Planes)
+    {
         float length = glm::length(plane.normal);
         plane.normal /= length;
         plane.distanceToOrigin /= length;
@@ -59,7 +61,8 @@ void ViewFrustum::Update(const glm::mat4& mat) noexcept
 bool ViewFrustum::IsBoxInFrustum(const AABB& box, const glm::vec3& position) const noexcept
 {
     bool result = true;
-    for (auto& plane : m_Planes) {
+    for (auto& plane : m_Planes)
+    {
         if (plane.DistanceToPoint(box.getVP(plane.normal, position)) < 0)
             return false;
         else if (plane.DistanceToPoint(box.getVN(plane.normal, position)) < 0)

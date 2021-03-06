@@ -4,14 +4,16 @@
 
 class AABB;
 
-struct Plane {
+struct Plane
+{
     float DistanceToPoint(const glm::vec3& point) const;
 
     float distanceToOrigin;
     glm::vec3 normal;
 };
 
-class ViewFrustum {
+class ViewFrustum
+{
 public:
     void Update(const glm::mat4& projViewMatrix) noexcept;
 

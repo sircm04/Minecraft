@@ -6,6 +6,7 @@
 
 Game::~Game()
 {
+	m_Thread.join();
 	glfwTerminate();
 }
 
@@ -122,7 +123,7 @@ void Game::StartLoop()
 		return;
 	m_IsRunning = true;
 
-	std::thread([]()
+	m_Thread = std::thread([]()
 	{
 		while (!glfwWindowShouldClose(g_Game->GetWindow()))
 		{
@@ -134,7 +135,8 @@ void Game::StartLoop()
 
 			g_Game->GetWorld().Update(deltaTime, &g_Game->GetPlayer(), g_Game->GetPlayer().m_Position);
 		}
-	}).detach();
+	});
+	m_Thread.detach();
 
 	while (!glfwWindowShouldClose(m_Window))
 	{
