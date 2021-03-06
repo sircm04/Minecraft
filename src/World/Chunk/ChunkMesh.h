@@ -93,7 +93,7 @@ private:
 		}
 
 	private:
-		int m_Array[8];
+		uint8_t m_Array[8];
 	};
 
 	uint8_t CalculateVertexAO(uint8_t side1, uint8_t side2, uint8_t corner) noexcept

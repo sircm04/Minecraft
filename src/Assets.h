@@ -32,8 +32,13 @@ namespace Assets
 		});
 
 		SHADERS["SUN"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
-			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Basic3dTex.vert") },
-			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Basic3dTex.frag") }
+			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Sun.vert") },
+			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Sun.frag") }
+		});
+
+		SHADERS["SKY"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
+			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Sky.vert") },
+			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Sky.frag") }
 		});
 
 		SHADERS["GUI"]->SetVec4("u_color", glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
@@ -67,15 +72,58 @@ namespace Assets
 		sunLayout.Push<float>(3);
 
 		MESHES["SUN"] = std::make_unique<Mesh>(std::vector<float> {
-			0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f,
-			0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-			0.5f, -0.5f, 0.5f, 0.5f, 0.5f, -0.5f,
-			0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f
+			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+			0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f
 		}, std::vector<unsigned int> {
 			0, 1, 2, 3, 2, 1
 		}, sunLayout); // East is positive x
 
 		ARRAY_TEXTURES["SUN"] = std::make_unique<ArrayTexture>(std::vector<std::string> { "res/images/sun.png" }, 16, 16);
+
+		VertexBufferLayout skyLayout;
+		skyLayout.Push<float>(3);
+
+		MESHES["SKY"] = std::make_unique<Mesh>(std::vector<float> {
+			// front
+			0.5f, 0.5f, 0.5f,
+			0.5f, -0.5f, 0.5f,
+			-0.5f, -0.5f, 0.5f,
+			-0.5f, 0.5f, 0.5f,
+			// back
+			0.5f, 0.5f, -0.5f,
+			-0.5f, 0.5f, -0.5f,
+			-0.5f, -0.5f, -0.5f,
+			0.5f, -0.5f, -0.5f,
+			// left
+			-0.5f, 0.5f, -0.5f,
+			-0.5f, 0.5f, 0.5f,
+			-0.5f, -0.5f, 0.5f,
+			-0.5f, -0.5f, -0.5f,
+			// right
+			0.5f, 0.5f, -0.5f,
+			0.5f, -0.5f, -0.5f,
+			0.5f, -0.5f, 0.5f,
+			0.5f, 0.5f, 0.5f,
+			// top
+			0.5f, 0.5f, 0.5f,
+			-0.5f, 0.5f, 0.5f,
+			-0.5f, 0.5f, -0.5f,
+			0.5f, 0.5f, -0.5f,
+			// bottom
+			0.5f, -0.5f, 0.5f,
+			0.5f, -0.5f, -0.5f,
+			-0.5f, -0.5f, -0.5f,
+			-0.5f, -0.5f, 0.5f
+		}, std::vector<unsigned int> {
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4,
+			8, 9, 10, 10, 11, 8,
+			12, 13, 14, 14, 15, 12,
+			16, 17, 18, 18, 19, 16,
+			20, 21, 22, 22, 23, 20
+		}, skyLayout);
 
 		VertexBufferLayout entityLayout;
 		entityLayout.Push<float>(3);

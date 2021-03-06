@@ -69,10 +69,10 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			xNegativeDistance = -radius + playerChunkPosition.x,
 			zNegativeDistance = -radius + playerChunkPosition.y;
 
-		const float radius2 = static_cast<float>(radius * radius);
+		static const float radius2 = static_cast<float>(radius * radius);
 
 		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
-			futures.push_back(std::async(std::launch::async, code, x, zNegativeDistance, zPositiveDistance, radius2, playerChunkPosition));
+			futures.emplace_back(std::async(std::launch::async, code, x, zNegativeDistance, zPositiveDistance, radius2, playerChunkPosition));
 	};
 
 	loop(WORLD_OUTER_RADIUS, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
@@ -173,17 +173,17 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	bool xAtMin = (inChunkPosition.x) == 0, xAtMax = (Chunk::CHUNK_WIDTH - 1),
 		zAtMin = (inChunkPosition.z) == 0, zAtMax = (Chunk::CHUNK_DEPTH - 1);
 
-	constexpr glm::ivec3 offs[] = {
+	constexpr glm::ivec3 offsets[] = {
 		{-1,  0, 0b01 }, { 0, -1, 0b10 },
 		{ 1,  0, 0b01 }, { 0,  1, 0b10 },
 		{-1, -1, 0b11 }, { 1,  1, 0b11 },
 		{-1,  1, 0b11 }, { 1, -1, 0b11 }
 	};
 
-	for (auto off : offs) {
-		auto target = chunkPosition + glm::ivec2 { off };
+	for (auto offset : offsets) {
+		auto target = chunkPosition + glm::ivec2 { offset };
 
-		if ((!(off.z & 1) || xAtMax) && (!(off.z & 2) || zAtMax))
+		if ((!(offset.z & 1) || xAtMax) && (!(offset.z & 2) || zAtMax))
 			chunks.emplace(GetChunk(target), target);
 	}
 	
@@ -213,6 +213,18 @@ const Block* World::GetBlock(const glm::ivec3& position) const noexcept
 {
 	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
 	return ((chunk) ? chunk->GetBlock(GetBlockPositionInChunk(position)) : nullptr);
+}
+
+Block* World::GetBlockInBounds(const glm::ivec3& position) noexcept
+{
+	Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
+	return ((chunk) ? chunk->GetBlockInBounds(GetBlockPositionInChunk(position)) : nullptr);
+}
+
+const Block* World::GetBlockInBounds(const glm::ivec3& position) const noexcept
+{
+	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
+	return ((chunk) ? chunk->GetBlockInBounds(GetBlockPositionInChunk(position)) : nullptr);
 }
 
 int World::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
@@ -247,7 +259,7 @@ const std::optional<glm::ivec3> World::GetTargetBlockPosition(glm::vec3 position
 
 		position += direction * (t + 0.001f);
 
-		const Block* block = GetBlock(blockPos = floor(glm::vec3 {
+		const Block* block = GetBlockInBounds(blockPos = floor(glm::vec3 {
 			position.x,
 			position.y,
 			position.z

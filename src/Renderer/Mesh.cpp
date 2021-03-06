@@ -27,5 +27,6 @@ void Mesh::Unbind()
 
 void Mesh::Render()
 {
+	Bind();
 	glDrawElements(GL_TRIANGLES, m_IndexBuffer.GetCount(), GL_UNSIGNED_INT, nullptr);
 }

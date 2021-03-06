@@ -9,7 +9,7 @@ class Player;
 class World
 {
 public:
-	static constexpr unsigned int WORLD_RADIUS = 24, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
+	static constexpr uint16_t WORLD_RADIUS = 24, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
 		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
 
 private:
@@ -45,6 +45,8 @@ public:
 	void SetBlock(const glm::ivec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::ivec3& position) noexcept;
 	const Block* GetBlock(const glm::ivec3& position) const noexcept;
+	Block* GetBlockInBounds(const glm::ivec3& position) noexcept;
+	const Block* GetBlockInBounds(const glm::ivec3& position) const noexcept;
 
 	int GetHighestBlockYPosition(const glm::ivec2& position) const noexcept;
 

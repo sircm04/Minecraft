@@ -101,11 +101,11 @@ void Game::Initialize()
 		1.0f
 	};
 
-	//const glm::vec3 bottomSkyColor = {
-	//	0.67f,
-	//	0.82f,
-	//	1.0f
-	//};
+	const glm::vec3 bottomSkyColor = {
+		0.67f,
+		0.82f,
+		1.0f
+	};
 
 	glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
@@ -113,7 +113,7 @@ void Game::Initialize()
 
 	Assets::SHADERS["BLOCK"]->Bind();
 	Assets::SHADERS["BLOCK"]->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
-	Assets::SHADERS["BLOCK"]->SetVec3("fogColor", skyColor);
+	Assets::SHADERS["BLOCK"]->SetVec3("fogColor", bottomSkyColor);
 }
 
 void Game::StartLoop()
@@ -219,35 +219,43 @@ inline void Game::OnRender(int width, int height, double fps)
 	}
 	else
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		const glm::mat4 view = glm::lookAt(m_Player.m_Camera.position,
 			m_Player.m_Camera.position + m_Player.m_Camera.front, m_Player.m_Camera.up);
 		const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov),
 			(static_cast<float>(width) / static_cast<float>(height)), 0.1f, 5000.0f);
 
-		Assets::SHADERS["SUN"]->Bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glDepthMask(GL_FALSE);
 
+		glDepthFunc(GL_LEQUAL);
+
+		Assets::SHADERS["SKY"]->Bind();
+		Assets::SHADERS["SKY"]->SetMat4("view", glm::mat4(glm::mat3(view)));
+		Assets::SHADERS["SKY"]->SetMat4("projection", projection);
+		Assets::MESHES["SKY"]->Render();
+
+		Assets::SHADERS["SUN"]->Bind();
 		Assets::SHADERS["SUN"]->SetMat4("view", view);
 		Assets::SHADERS["SUN"]->SetMat4("projection", projection);
 
 		static constexpr float sunSpeed = 0.005f;
 
-		glm::mat4 translation = glm::translate(glm::mat4(1.0f), {
-			m_Player.m_Position.x - 0.75f,
-			m_Player.m_Position.y + (sin(glfwGetTime() * sunSpeed) * 7.5f),
-			m_Player.m_Position.z + (cos(glfwGetTime() * sunSpeed) * 7.5f)
+		glm::mat4 translation = glm::translate(glm::mat4(1.0f),
+		{
+			m_Player.m_Position.x + (cos(glfwGetTime() * sunSpeed) * 7.0f),
+			m_Player.m_Position.y + 0.275f + (sin(glfwGetTime() * sunSpeed) * 7.0f),
+			m_Player.m_Position.z - 0.275f
 		});
 		glm::vec3 sunPosition = translation * glm::vec4(0, 0, 0, 1);
-		glm::mat4 lookAtMatrix = glm::inverse(glm::lookAt(sunPosition, m_Player.m_Position, { 1.0f, 0.0f, 0.0f }));
+		glm::mat4 lookAtMatrix = glm::inverse(glm::lookAt(sunPosition, m_Player.m_Position, { 0.0f, 0.0f, 1.0f }));
 		glm::mat4 sunMatrix = lookAtMatrix;
 
 		Assets::SHADERS["SUN"]->SetMat4("model", sunMatrix);
-
 		Assets::ARRAY_TEXTURES["SUN"]->Bind();
 		Assets::MESHES["SUN"]->Render();
 
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glDepthFunc(GL_LESS);
+		glDepthMask(GL_TRUE);
 
 		Assets::SHADERS["BLOCK"]->Bind();
 		Assets::ARRAY_TEXTURES["BLOCKS"]->Bind();
@@ -255,10 +263,6 @@ inline void Game::OnRender(int width, int height, double fps)
 		Assets::SHADERS["BLOCK"]->SetMat4("view", view);
 		Assets::SHADERS["BLOCK"]->SetMat4("projection", projection);
 		Assets::SHADERS["BLOCK"]->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
-
-		//Assets::SHADERS["BLOCK"]->SetVec3("lightPos", { (Chunk::CHUNK_WIDTH / 2) + 0.5f, (Chunk::CHUNK_HEIGHT / 2) + 40, (Chunk::CHUNK_DEPTH / 2) + 0.5f });
-		//Assets::SHADERS["BLOCK"]->SetVec3("viewPos", m_Player.m_Camera.position);
-
 		Assets::SHADERS["BLOCK"]->SetVec3("playerPosition", m_Player.m_Position);
 
 		static ViewFrustum frustum;
@@ -272,8 +276,7 @@ inline void Game::OnRender(int width, int height, double fps)
 		m_World.RenderEntities();
 
 		glDisable(GL_MULTISAMPLE);
-		glDisable(GL_DEPTH_TEST);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glDepthMask(GL_FALSE);
 
 		// Adjusts GUI scaling with window resizing:
 		static const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -311,10 +314,11 @@ inline void Game::OnRender(int width, int height, double fps)
 		TextRenderer::Begin();
 		TextRenderer::DrawText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);
 		TextRenderer::End();
-		Assets::MESHES["GUI"]->Bind();
 
 		glEnable(GL_MULTISAMPLE);
 		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
+
+		Assets::MESHES["GUI"]->Bind();
 
 		Assets::TEXTURES["CROSSHAIR"]->Bind();
 		glm::vec3 guiPosition = {
@@ -331,7 +335,7 @@ inline void Game::OnRender(int width, int height, double fps)
 		Assets::MESHES["GUI"]->Render();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 	}
 
 	glfwSwapBuffers(m_Window);

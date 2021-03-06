@@ -36,7 +36,7 @@ bool AABB::IntersectsBlocks(const World* world, const glm::vec3& position) const
 	for (int x = blockMin.x; x <= blockMax.x; ++x) {
 		for (int y = blockMin.y; y <= blockMax.y; ++y) {
 			for (int z = blockMin.z; z <= blockMax.z; ++z) {
-				const Block* block = world->GetBlock({ x, y, z });
+				const Block* block = world->GetBlockInBounds({ x, y, z });
 
 				if (block && block->GetBlockTypeData().isSolid)
 					return true;

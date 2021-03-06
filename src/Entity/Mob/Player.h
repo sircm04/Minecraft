@@ -10,11 +10,11 @@ class Player : public Mob
 public:
 	static const inline AABB PLAYER_AABB = AABB({ -0.25f, -1.5f, -0.25f }, { 0.25f, 0.25f, 0.25f });
 
-	static constexpr inline float GRAVITY = -27.0f;
+	static constexpr inline float GRAVITY = -24.0f;
 
 	Camera m_Camera;
 
-	bool m_IsFlying = false;
+	bool m_IsFlying = true;
 	float m_VelocityY = 0;
 	BlockType m_BlockInHand = static_cast<BlockType>(1);
 

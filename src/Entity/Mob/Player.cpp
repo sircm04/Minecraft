@@ -81,7 +81,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		if (m_IsFlying)
 			newPosition += m_Speed * m_Camera.up;
 		else if (IsStandingOnGround())
-			m_VelocityY = 8.5f;
+			m_VelocityY = 7.5f;
 	}
 	if (m_IsFlying && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		newPosition -= m_Speed * m_Camera.up;
