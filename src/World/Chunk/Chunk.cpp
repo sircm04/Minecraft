@@ -13,7 +13,7 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 {
 	m_ChunkState = ChunkState::Ungenerated;
 
-	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
+	m_Blocks.reserve(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
 
 	int realChunkX = (chunkPosition.x << 4),
 		realChunkZ = (chunkPosition.y << 4);

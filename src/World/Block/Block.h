@@ -2,16 +2,16 @@
 
 enum class BlockType : uint8_t
 {
-	Count = 8,
+	Air,
+	Grass,
+	Dirt,
+	Stone,
+	Cobblestone,
+	Bedrock,
+	Wood,
+	Log,
 
-	Air = 0,
-	Grass = 1,
-	Dirt = 2,
-	Stone = 3,
-	Cobblestone = 4,
-	Bedrock = 5,
-	Wood = 6,
-	Log = 7
+	Count
 };
 
 struct BlockTypeData
