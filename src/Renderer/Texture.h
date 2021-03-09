@@ -15,7 +15,7 @@ public:
 	void Bind(unsigned int slot = 0) const;
 	void Unbind() const;
 
-	inline int GetWidth() const noexcept { return m_Width; }
-	inline int GetHeight() const noexcept { return m_Height; }
-	inline int GetBPP() const noexcept { return m_BPP; }
+	int GetWidth() const noexcept { return m_Width; }
+	int GetHeight() const noexcept { return m_Height; }
+	int GetBPP() const noexcept { return m_BPP; }
 };

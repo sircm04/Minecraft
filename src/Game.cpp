@@ -168,9 +168,11 @@ void Game::StartLoop()
 		if (width > 0 && height > 0)
 			OnRender(width, height, fps);
 	}
+
+	m_IsRunning = false;
 }
 
-inline void Game::OnUpdate(double deltaTime)
+void Game::OnUpdate(double deltaTime)
 {
 	glfwPollEvents();
 
@@ -178,7 +180,7 @@ inline void Game::OnUpdate(double deltaTime)
 	m_Player.Update(deltaTime);
 }
 
-inline void Game::OnRender(int width, int height, double fps)
+void Game::OnRender(int width, int height, double fps)
 {
 	glm::mat4 guiProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
 
@@ -313,7 +315,8 @@ inline void Game::OnRender(int width, int height, double fps)
 			static_cast<int>(m_Player.m_Position.z);
 
 		TextRenderer::Begin();
-		TextRenderer::DrawText(ss.str().c_str(), { (2.0f * size), (2.0f * size) }, size);
+		TextRenderer::DrawText(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNO", { (2.0f * size), (2.0f * size) }, size);
+		TextRenderer::DrawText("PQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", { (2.0f * size), (10.0f * size) }, size);
 		TextRenderer::End();
 
 		glEnable(GL_MULTISAMPLE);

@@ -23,13 +23,13 @@ public:
 	void Initialize();
 	void StartLoop();
 
-	inline void OnUpdate(double deltaTime);
-	inline void OnRender(int width, int height, double fps);
+	void OnUpdate(double deltaTime);
+	void OnRender(int width, int height, double fps);
 
-	inline GLFWwindow* GetWindow() const noexcept { return m_Window; }
-	inline bool IsRunning() const noexcept { return m_IsRunning; }
-	inline World& GetWorld() noexcept { return m_World; }
-	inline Player& GetPlayer() noexcept { return m_Player; }
+	GLFWwindow* GetWindow() const noexcept { return m_Window; }
+	bool IsRunning() const noexcept { return m_IsRunning; }
+	World& GetWorld() noexcept { return m_World; }
+	Player& GetPlayer() noexcept { return m_Player; }
 };
 
 extern Game* g_Game;

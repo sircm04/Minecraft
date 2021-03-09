@@ -46,12 +46,6 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		}
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && clickDelay[1] == 0)
-	{
-		m_IsFlying = !m_IsFlying;
-		clickDelay[1] = 0.2f;
-	}
-
 	for (auto& delay : clickDelay) {
 		if (delay > 0)
 			delay -= 1 * deltaTime;
@@ -67,6 +61,18 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		m_Speed *= ((m_IsFlying) ? 5.0f : 1.5f);
 
 	m_Speed *= deltaTime;
+
+	static bool pressed = false;
+	if (glfwGetKey(window, GLFW_KEY_F) != GLFW_PRESS)
+		pressed = false;
+
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && !pressed)
+	{
+		m_IsFlying = !m_IsFlying;
+		if (m_IsFlying)
+			m_VelocityY = 0.0f;
+		pressed = true;
+	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		newPosition += m_Speed * front;

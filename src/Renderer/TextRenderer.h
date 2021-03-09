@@ -5,20 +5,20 @@
 
 namespace TextRenderer
 {
-	static const std::string CHARACTERS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTYVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+	static const std::string CHARACTERS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 	static const uint8_t MAX_LENGTH = 16, CHARACTER_WIDTH = 6, CHARACTER_HEIGHT = 7;
 	static std::vector<float> vertices;
 	static std::vector<unsigned int> indices;
 	static unsigned int index = 0;
 
-	static inline void Begin()
+	static void Begin()
 	{
 		vertices.clear();
 		indices.clear();
 		index = 0;
 	}
 
-	static inline void DrawText(const std::string& text, const glm::vec2& position, unsigned int size)
+	static void DrawText(const std::string& text, const glm::vec2& position, unsigned int size)
 	{
 		unsigned int xScale = (CHARACTER_WIDTH * size),
 			yScale = (CHARACTER_HEIGHT * size);
@@ -52,7 +52,7 @@ namespace TextRenderer
 		}
 	}
 
-	static inline void End()
+	static void End()
 	{
 		VertexBufferLayout guiLayout;
 		guiLayout.Push<float>(2);
