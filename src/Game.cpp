@@ -308,15 +308,15 @@ void Game::OnRender(int width, int height, double fps)
 			Assets::MESHES["GUI"]->Render();
 		}
 
-		std::stringstream ss;
-		ss << "FPS: " << fps << ", POS: " <<
-			static_cast<int>(m_Player.m_Position.x) << ", " <<
-			static_cast<int>(m_Player.m_Position.y) << ", " <<
-			static_cast<int>(m_Player.m_Position.z);
-
 		TextRenderer::Begin();
-		TextRenderer::DrawText(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNO", { (2.0f * size), (2.0f * size) }, size);
-		TextRenderer::DrawText("PQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", { (2.0f * size), (10.0f * size) }, size);
+		TextRenderer::DrawText("sircm04's Minecraft Clone (v0.1)", { (2.0f * size), (2.0f * size) }, size);
+		TextRenderer::DrawText(std::to_string(static_cast<int>(fps)) + " fps", { (2.0f * size), (11.0f * size) }, size);
+		TextRenderer::DrawText("XYZ: "
+			+ std::to_string(static_cast<int>(m_Player.m_Position.x)) + " "
+			+ std::to_string(static_cast<int>(m_Player.m_Position.y)) + " "
+			+ std::to_string(static_cast<int>(m_Player.m_Position.z)),
+			{ (2.0f * size), (20.0f * size) }, size);
+
 		TextRenderer::End();
 
 		glEnable(GL_MULTISAMPLE);
