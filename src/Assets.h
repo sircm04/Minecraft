@@ -31,6 +31,11 @@ namespace Assets
 			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/GUI.frag") }
 		});
 
+		SHADERS["GUI_ARRAY"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
+			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/GUIArray.vert") },
+			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/GUIArray.frag") }
+		});
+
 		SHADERS["SUN"] = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
 			{ GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/Sun.vert") },
 			{ GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/Sun.frag") }
@@ -47,6 +52,10 @@ namespace Assets
 			"res/images/grass_side.png", "res/images/grass_top.png", "res/images/grass_bottom.png",
 			"res/images/stone.png", "res/images/cobblestone.png", "res/images/bedrock.png",
 			"res/images/wood.png", "res/images/log_side.png", "res/images/log_top.png"
+		}, 16, 16);
+
+		ARRAY_TEXTURES["ITEMS"] = std::make_unique<ArrayTexture>(std::vector<std::string> {
+			"res/images/bread.png", "res/images/diamond.png"
 		}, 16, 16);
 
 		VertexBufferLayout guiLayout;

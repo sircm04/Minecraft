@@ -4,8 +4,6 @@
 #include "../Entity/Mob/Player.h"
 #include "../Entity/Mob/Cow.h"
 
-#include "../Utils/Timer.h"
-
 World::World() noexcept
 {
 	std::random_device rand;
@@ -49,7 +47,9 @@ void World::RenderEntities()
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
-	static constexpr unsigned int worldOuterRadius2 = WORLD_OUTER_RADIUS * WORLD_OUTER_RADIUS;
+	static constexpr unsigned int worldOuterRadius2 = WORLD_OUTER_RADIUS * WORLD_OUTER_RADIUS,
+		worldRadius2 = WORLD_RADIUS * WORLD_RADIUS;
+
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
 	{
 		if (ceil(glm::distance2(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= worldOuterRadius2)
@@ -59,9 +59,9 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		}
 	}
 
-	auto loop = [&](unsigned int radius, auto&& code)
+	auto loop = [&](unsigned int radius, unsigned int radius2, auto&& code)
 	{
-		Timer timer("World::UpdateChunks subloop");
+		//Timer timer("World::UpdateChunks subloop");
 		std::vector<std::future<void>> futures;
 
 		int xPositiveDistance = radius + playerChunkPosition.x,
@@ -69,13 +69,11 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			xNegativeDistance = -radius + playerChunkPosition.x,
 			zNegativeDistance = -radius + playerChunkPosition.y;
 
-		static const float radius2 = static_cast<float>(radius * radius);
-
 		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
 			futures.emplace_back(std::async(std::launch::async, code, x, zNegativeDistance, zPositiveDistance, radius2, playerChunkPosition));
 	};
 
-	loop(WORLD_OUTER_RADIUS, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
+	loop(WORLD_OUTER_RADIUS, worldOuterRadius2, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
 		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 		{
 			const glm::ivec2 chunkPosition = { x, z };
@@ -94,18 +92,18 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 	if (m_FirstLoad)
 	{
-		m_FirstLoad = false;
 		int y = GetHighestBlockYPosition(floor(glm::vec2 { player->m_Position.x, player->m_Position.z }));
 		if (y != -1)
 		{
 			player->m_Position.x += 0.5f;
-			player->m_Position.y = (y + 2.5f);
+			player->m_Position.y = (y + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y));
 			player->m_Position.z += 0.5f;
 			AddEntity<Cow>(this, player->m_Position);
 		}
+		m_FirstLoad = false;
 	}
 
-	loop(WORLD_RADIUS, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
+	loop(WORLD_RADIUS, worldRadius2, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
 		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 		{
 			const glm::ivec2 chunkPosition = { x, z };
