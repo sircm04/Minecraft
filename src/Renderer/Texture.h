@@ -9,6 +9,7 @@ private:
 	int m_Width, m_Height, m_BPP;
 
 public:
+	Texture() = default;
 	Texture(const std::string& filePath);
 	~Texture();
 
