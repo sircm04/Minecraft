@@ -3,6 +3,8 @@
 
 #include "Assets.h"
 #include "Renderer/TextRenderer.h"
+#include "Menu/LoadingScreenMenu.h"
+#include "Menu/InventoryMenu.h"
 
 Game::~Game()
 {
@@ -115,6 +117,18 @@ void Game::Initialize()
 	Assets::SHADERS["BLOCK"]->Bind();
 	Assets::SHADERS["BLOCK"]->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
 	Assets::SHADERS["BLOCK"]->SetVec3("fogColor", bottomSkyColor);
+
+	m_Player.m_Inventory = {
+		{
+			Item { ItemType::Bread },
+			std::nullopt,
+			Item { ItemType::Bread },
+			Item { ItemType::Bread },
+			Item { ItemType::Diamond },
+			Item { ItemType::Bread },
+			Item { ItemType::Bread }
+		}
+	};
 }
 
 void Game::StartLoop()
@@ -184,14 +198,18 @@ void Game::OnRender(int width, int height, double fps)
 {
 	glm::mat4 guiProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	if (m_World.m_FirstLoad)
 	{
-		glClear(GL_DEPTH_BUFFER_BIT);
+		// Render dirt block loading screen:
+
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
 
 		Assets::SHADERS["GUI"]->Bind();
 		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
 		Assets::MESHES["GUI"]->Bind();
-
 		Assets::TEXTURES["DIRT"]->Bind();
 
 		static constexpr float dirtSize = 57.07f;
@@ -219,6 +237,9 @@ void Game::OnRender(int width, int height, double fps)
 		}
 
 		Assets::SHADERS["GUI"]->SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 	}
 	else
 	{
@@ -227,22 +248,24 @@ void Game::OnRender(int width, int height, double fps)
 		const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov),
 			(static_cast<float>(width) / static_cast<float>(height)), 0.1f, 5000.0f);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
-
 		glDepthFunc(GL_LEQUAL);
+
+		// Render skybox:
 
 		Assets::SHADERS["SKY"]->Bind();
 		Assets::SHADERS["SKY"]->SetMat4("view", glm::mat4(glm::mat3(view)));
 		Assets::SHADERS["SKY"]->SetMat4("projection", projection);
 		Assets::MESHES["SKY"]->Render();
 
+		// Render sun:
+
 		Assets::SHADERS["SUN"]->Bind();
 		Assets::SHADERS["SUN"]->SetMat4("view", view);
 		Assets::SHADERS["SUN"]->SetMat4("projection", projection);
 
 		static constexpr float sunSpeed = 0.005f;
-
 		glm::mat4 translation = glm::translate(glm::mat4(1.0f),
 		{
 			m_Player.m_Position.x + (cos(glfwGetTime() * sunSpeed) * 7.0f),
@@ -257,8 +280,11 @@ void Game::OnRender(int width, int height, double fps)
 		Assets::ARRAY_TEXTURES["SUN"]->Bind();
 		Assets::MESHES["SUN"]->Render();
 
+		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glDepthMask(GL_TRUE);
+
+		// Render world:
 
 		Assets::SHADERS["BLOCK"]->Bind();
 		Assets::ARRAY_TEXTURES["BLOCKS"]->Bind();
@@ -272,6 +298,8 @@ void Game::OnRender(int width, int height, double fps)
 		frustum.Update(projection * view);
 		m_World.RenderChunks(frustum);
 
+		// Render entities:
+
 		Assets::SHADERS["ENTITY"]->Bind();
 		Assets::SHADERS["ENTITY"]->SetMat4("view", view);
 		Assets::SHADERS["ENTITY"]->SetMat4("projection", projection);
@@ -279,13 +307,16 @@ void Game::OnRender(int width, int height, double fps)
 		m_World.RenderEntities();
 
 		glDisable(GL_MULTISAMPLE);
+		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
 		// Adjusts GUI scaling with window resizing:
 		static const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		static const float maxScalingWidth = (0.67f * mode->width), maxScalingHeight = (0.93f * (mode->height - 53)); // 1080p maximized (not fullscreen): 1280/960
-		unsigned int size = std::max(1.0f, 4.0f * std::min(1.0f,
+		const uint8_t scale = std::max(1.0f, 4.0f * std::min(1.0f,
 			std::min(static_cast<float>(width) / maxScalingWidth, (static_cast<float>(height) / maxScalingHeight))));
+
+		// Render hearts:
 
 		Assets::SHADERS["GUI"]->Bind();
 		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
@@ -296,49 +327,84 @@ void Game::OnRender(int width, int height, double fps)
 		{
 			Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 			{
-				(2.0f * size) + (i * (8.0f * size)),
-				height - (11.0f * size),
+				(2.0f * scale) + (i * (8.0f * scale)),
+				height - (11.0f * scale),
 				0.0f
 			}),
 			{
-				9.0f * size,
-				9.0f * size,
+				9.0f * scale,
+				9.0f * scale,
 				0.0f
 			}));
 			Assets::MESHES["GUI"]->Render();
 		}
 
+		// Render text:
+
 		TextRenderer::Begin();
-		TextRenderer::DrawText("sircm04's Minecraft Clone (v0.1)", { (2.0f * size), (2.0f * size) }, size);
-		TextRenderer::DrawText(std::to_string(static_cast<int>(fps)) + " fps", { (2.0f * size), (11.0f * size) }, size);
+		TextRenderer::DrawText("sircm04's Minecraft Clone (v0.1)", { (2.0f * scale), (2.0f * scale) }, scale);
+		TextRenderer::DrawText(std::to_string(static_cast<int>(fps)) + " fps", { (2.0f * scale), (11.0f * scale) }, scale);
 		TextRenderer::DrawText("XYZ: "
 			+ std::to_string(static_cast<int>(m_Player.m_Position.x)) + " "
 			+ std::to_string(static_cast<int>(m_Player.m_Position.y)) + " "
 			+ std::to_string(static_cast<int>(m_Player.m_Position.z)),
-			{ (2.0f * size), (20.0f * size) }, size);
-
+			{ (2.0f * scale), (20.0f * scale) }, scale);
 		TextRenderer::End();
+
+		// Render crosshair:
 
 		glEnable(GL_MULTISAMPLE);
 		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 
 		Assets::MESHES["GUI"]->Bind();
-
 		Assets::TEXTURES["CROSSHAIR"]->Bind();
-		glm::vec3 guiPosition = {
-			(static_cast<float>(width) * 0.5f) - (4.5f * size),
-			(static_cast<float>(height) * 0.5f) - (4.5f * size),
-			0.0f
-		};
-		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), guiPosition),
+		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 		{
-			9.0f * size,
-			9.0f * size,
+			(static_cast<float>(width) * 0.5f) - (4.5f * scale),
+			(static_cast<float>(height) * 0.5f) - (4.5f * scale),
+			0.0f
+		}),
+		{
+			9.0f * scale,
+			9.0f * scale,
 			0.0f
 		}));
 		Assets::MESHES["GUI"]->Render();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		// Render hotbar:
+
+		Assets::SHADERS["GUI_ARRAY"]->Bind();
+		Assets::SHADERS["GUI_ARRAY"]->SetMat4("projection", guiProjection);
+		Assets::MESHES["GUI"]->Bind();
+		Assets::ARRAY_TEXTURES["ITEMS"]->Bind();
+		Assets::SHADERS["GUI_ARRAY"]->SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
+
+		const int hotbarWidth = m_Player.m_Inventory.items.size();
+		for (int i = 0; i < m_Player.m_Inventory.items.size(); ++i)
+		{
+			auto item = m_Player.m_Inventory.items[i];
+
+			if (item)
+			{
+				Assets::SHADERS["GUI_ARRAY"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+				{
+					(width * 0.5f) + (i - (hotbarWidth * 0.5f)) * (16.0f * scale),
+					height - (16.0f * scale),
+					0.0f
+				}),
+				{
+					(16.0f * scale),
+					(16.0f * scale),
+					0.0f
+				}));
+				Assets::SHADERS["GUI_ARRAY"]->SetFloat("texZ", static_cast<float>(item->m_ItemType));
+				Assets::MESHES["GUI"]->Render();
+			}
+		}
+
+		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 	}
 

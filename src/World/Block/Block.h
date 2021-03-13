@@ -34,7 +34,10 @@ static constexpr BlockTypeData BLOCK_TYPE_DATA[] =
 	{ std::array { 7.0f, 7.0f, 7.0f, 7.0f, 8.0f, 8.0f } }, // Log
 };
 
-static const BlockTypeData& GetBlockTypeData(BlockType blockType) noexcept;
+static const BlockTypeData& GetBlockTypeData(BlockType blockType) noexcept
+{
+	return BLOCK_TYPE_DATA[static_cast<uint8_t>(blockType)];
+}
 
 struct Block
 {

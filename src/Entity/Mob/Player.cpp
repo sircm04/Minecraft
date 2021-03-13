@@ -8,7 +8,7 @@ Player::Player(World* world) noexcept
 
 void Player::Input(GLFWwindow* window, double deltaTime)
 {
-	static float clickDelay[2];
+	static float clickDelay[3];
 	static constexpr uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(9));
 	static glm::vec3 front, newPosition;
 	
@@ -44,6 +44,18 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 			m_World->RefreshNeighboringChunks(*blockPosition);
 			clickDelay[0] = 0.2f;
 		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_T) && clickDelay[1] == 0)
+	{
+		m_Inventory.items.emplace_back(Item{ ItemType::Diamond });
+		clickDelay[1] = 0.2f;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_BACKSPACE) && clickDelay[2] == 0)
+	{
+		m_Inventory.items.pop_back();
+		clickDelay[2] = 0.2f;
 	}
 
 	for (auto& delay : clickDelay) {
