@@ -4,6 +4,7 @@
 Player::Player(World* world) noexcept
 	: Mob(world, glm::vec3(), 10, 10, 9.0f)
 {
+	
 }
 
 void Player::Input(GLFWwindow* window, double deltaTime)
