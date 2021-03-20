@@ -21,7 +21,7 @@ private:
 
 	ChunkState m_ChunkState = ChunkState::Ungenerated;
 
-	static constexpr uint16_t Chunk::PositionToIndex(const glm::uvec3& position) noexcept
+	static constexpr uint16_t PositionToIndex(const glm::uvec3& position) noexcept
 	{
 		return (static_cast<uint16_t>(position.y) << 8) | (static_cast<uint16_t>(position.z) << 4) | static_cast<uint16_t>(position.x);
 	}
@@ -39,7 +39,7 @@ public:
 
 	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept;
 
-	static constexpr bool Chunk::IsInBounds(const glm::uvec3& position) noexcept
+	static constexpr bool IsInBounds(const glm::uvec3& position) noexcept
 	{
 		return (position.x >= 0 && position.x < Chunk::CHUNK_WIDTH
 			&& position.y >= 0 && position.y < Chunk::CHUNK_HEIGHT
