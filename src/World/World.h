@@ -38,7 +38,7 @@ public:
 	void SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept;
 	Chunk* GetChunk(const glm::ivec2& position) noexcept;
 	const Chunk* GetChunk(const glm::ivec2& position) const noexcept;
-	const bool World::IsChunkLoaded(const glm::ivec2& position) const noexcept;
+	const bool IsChunkLoaded(const glm::ivec2& position) const noexcept;
 	
 	std::unordered_map<Chunk*, glm::ivec2> GetNeighboringChunks(const glm::ivec3& position) noexcept;
 	void RefreshNeighboringChunks(const glm::ivec3& position) noexcept;
