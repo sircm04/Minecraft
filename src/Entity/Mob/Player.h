@@ -30,6 +30,14 @@ public:
 	virtual void Update(double deltaTime) noexcept override;
 	virtual void Render() const noexcept override;
 
-	const inline std::optional<glm::vec3> GetTargetBlockPosition(int max, bool place = false) const noexcept;
-	const inline bool IsStandingOnGround() const noexcept;
+	const std::optional<glm::vec3> GetTargetBlockPosition(int max, bool place = false) const noexcept
+	{
+		return m_World->GetTargetBlockPosition(m_Position, m_Camera.front, max, place);
+	}
+
+	const bool IsStandingOnGround() const noexcept
+	{
+		return m_World->IsChunkLoaded(World::GetChunkPositionFromBlock({ m_Position.x, m_Position.z }))
+			&& PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y - 0.01f, m_Position.z });
+	}
 };

@@ -92,14 +92,13 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 	if (m_FirstLoad)
 	{
-		int y = GetHighestBlockYPosition(floor(glm::vec2 { player->m_Position.x, player->m_Position.z }));
-		if (y != -1)
-		{
-			player->m_Position.x += 0.5f;
-			player->m_Position.y = (y + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y));
-			player->m_Position.z += 0.5f;
-			AddEntity<Cow>(this, player->m_Position);
-		}
+		glm::vec2 playerPosition = floor(glm::vec2 { player->m_Position.x, player->m_Position.z });
+		uint8_t y;
+		while ((y = GetHighestBlockYPosition(playerPosition)) == -1);
+		player->m_Position.x += 0.5f;
+		player->m_Position.y = (y + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y));
+		player->m_Position.z += 0.5f;
+		AddEntity<Cow>(this, player->m_Position);
 		m_FirstLoad = false;
 	}
 
@@ -159,6 +158,12 @@ const Chunk* World::GetChunk(const glm::ivec2& position) const noexcept
 {
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
+}
+
+const bool World::IsChunkLoaded(const glm::ivec2& position) const noexcept
+{
+	const auto& found = m_Chunks.find(position);
+	return found != m_Chunks.end() && *found->second.GetChunkState() == ChunkState::Generated;
 }
 
 std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::ivec3& position) noexcept

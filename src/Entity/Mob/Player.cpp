@@ -4,6 +4,7 @@
 Player::Player(World* world) noexcept
 	: Mob(world, glm::vec3(), 10, 10, 9.0f)
 {
+	
 }
 
 void Player::Input(GLFWwindow* window, double deltaTime)
@@ -135,6 +136,8 @@ void Player::Update(double deltaTime) noexcept
 {
 	if (!m_IsFlying)
 	{
+		std::cout << IsStandingOnGround() << std::endl;
+
 		if (m_VelocityY < 0.0f && IsStandingOnGround())
 			m_VelocityY = 0.0f;
 
@@ -148,14 +151,4 @@ void Player::Update(double deltaTime) noexcept
 
 void Player::Render() const noexcept
 {
-}
-
-const inline std::optional<glm::vec3> Player::GetTargetBlockPosition(int max, bool place) const noexcept
-{
-	return m_World->GetTargetBlockPosition(m_Position, m_Camera.front, max, place);
-}
-
-const inline bool Player::IsStandingOnGround() const noexcept
-{
-	return PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y - 0.01f, m_Position.z });
 }
