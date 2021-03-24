@@ -2,9 +2,9 @@
 
 layout(location = 0) out vec4 color;
 
-in vec3 s_TexCoord;
+in vec2 s_TexCoord;
 
-uniform sampler2DArray image;
+uniform sampler2D image;
 
 void main()
 {

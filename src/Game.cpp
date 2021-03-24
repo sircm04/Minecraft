@@ -268,16 +268,16 @@ void Game::OnRender(int width, int height, double fps)
 		static constexpr float sunSpeed = 0.005f;
 		glm::mat4 translation = glm::translate(glm::mat4(1.0f),
 		{
-			m_Player.m_Position.x + (cos(glfwGetTime() * sunSpeed) * 7.0f),
-			m_Player.m_Position.y + 0.275f + (sin(glfwGetTime() * sunSpeed) * 7.0f),
-			m_Player.m_Position.z - 0.275f
+			m_Player.m_Position.x + (cos(glfwGetTime() * sunSpeed) * 10.0f),
+			m_Player.m_Position.y + (sin(glfwGetTime() * sunSpeed) * 10.0f),
+			m_Player.m_Position.z
 		});
 		glm::vec3 sunPosition = translation * glm::vec4(0, 0, 0, 1);
 		glm::mat4 lookAtMatrix = glm::inverse(glm::lookAt(sunPosition, m_Player.m_Position, { 0.0f, 0.0f, 1.0f }));
 		glm::mat4 sunMatrix = lookAtMatrix;
 
 		Assets::SHADERS["SUN"]->SetMat4("model", sunMatrix);
-		Assets::ARRAY_TEXTURES["SUN"]->Bind();
+		Assets::TEXTURES["SUN"]->Bind();
 		Assets::MESHES["SUN"]->Render();
 
 		glEnable(GL_DEPTH_TEST);

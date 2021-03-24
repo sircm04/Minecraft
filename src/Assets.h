@@ -89,7 +89,7 @@ namespace Assets
 			0, 1, 2, 3, 2, 1
 		}, sunLayout)); // East is positive x
 
-		ARRAY_TEXTURES.emplace("SUN", std::make_unique<ArrayTexture>(std::vector<std::string> { "res/images/sun.png" }, 16, 16));
+		TEXTURES.emplace("SUN", std::make_unique<Texture>("res/images/sun.png"));
 
 		VertexBufferLayout skyLayout;
 		skyLayout.Push<float>(3);
