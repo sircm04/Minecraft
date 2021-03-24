@@ -8,7 +8,8 @@ class World;
 enum class ChunkState : uint8_t
 {
 	Ungenerated,
-	Generated
+	Generated,
+	Removed
 };
 
 class Chunk
@@ -52,7 +53,8 @@ public:
 	Block* GetBlockInBounds(const glm::uvec3& position) noexcept;
 	const Block* GetBlockInBounds(const glm::uvec3& position) const noexcept;
 
-	int GetHighestBlockYPosition(int x, int z) const noexcept;
+	int GetHighestBlockYPosition(const glm::ivec2& position) const noexcept;
 
-	inline const ChunkState* GetChunkState() const noexcept { return &m_ChunkState; }
+	const ChunkState* GetChunkState() const noexcept { return &m_ChunkState; }
+	void SetRemoved() noexcept { m_ChunkState = ChunkState::Removed; }
 };

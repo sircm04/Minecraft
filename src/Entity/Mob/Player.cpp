@@ -136,8 +136,6 @@ void Player::Update(double deltaTime) noexcept
 {
 	if (!m_IsFlying)
 	{
-		std::cout << IsStandingOnGround() << std::endl;
-
 		if (m_VelocityY < 0.0f && IsStandingOnGround())
 			m_VelocityY = 0.0f;
 

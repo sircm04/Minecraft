@@ -26,15 +26,25 @@ void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosi
 
 void World::RenderChunks(const ViewFrustum& frustum)
 {
-	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
+	auto it = m_Chunks.begin();
+	while (it != m_Chunks.end())
 	{
-		if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Generated)
-			it->second.m_ChunkMesh.BufferMesh();
-
-		if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+		if (*it->second.GetChunkState() == ChunkState::Removed)
 		{
-			it->second.m_ChunkMesh.Bind();
-			it->second.m_ChunkMesh.Render(frustum, it->first);
+			it = m_Chunks.erase(it);
+		}
+		else
+		{
+			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Generated)
+				it->second.m_ChunkMesh.BufferMesh();
+
+			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+			{
+				it->second.m_ChunkMesh.Bind();
+				it->second.m_ChunkMesh.Render(frustum, it->first);
+			}
+
+			++it;
 		}
 	}
 }
@@ -51,13 +61,8 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		worldRadius2 = WORLD_RADIUS * WORLD_RADIUS;
 
 	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
-	{
 		if (ceil(glm::distance2(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= worldOuterRadius2)
-		{
-			std::lock_guard lock(m_MutexLock);
-			it = m_Chunks.erase(it);
-		}
-	}
+			it->second.SetRemoved();
 
 	auto loop = [&](unsigned int radius, unsigned int radius2, auto&& code)
 	{
@@ -92,8 +97,8 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 	if (m_FirstLoad)
 	{
-		glm::vec2 playerPosition = floor(glm::vec2 { player->m_Position.x, player->m_Position.z });
-		uint8_t y;
+		glm::ivec2 playerPosition = floor(glm::vec2 { player->m_Position.x, player->m_Position.z });
+		uint8_t y = 0;
 		while ((y = GetHighestBlockYPosition(playerPosition)) == -1);
 		player->m_Position.x += 0.5f;
 		player->m_Position.y = (y + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y));
@@ -235,15 +240,7 @@ int World::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
 	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.y }));
 
 	if (chunk)
-	{
-		for (uint8_t y = Chunk::CHUNK_HEIGHT; y > 0; --y)
-		{
-			const Block* block = chunk->GetBlock({ position.x, y, position.y });
-
-			if (block && block->GetBlockTypeData().isSolid)
-				return y;
-		}
-	}
+		return chunk->GetHighestBlockYPosition(position);
 
 	return -1;
 }

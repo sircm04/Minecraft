@@ -13,7 +13,7 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 {
 	m_ChunkState = ChunkState::Ungenerated;
 
-	m_Blocks.reserve(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
+	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
 
 	int realChunkX = (chunkPosition.x << 4),
 		realChunkZ = (chunkPosition.y << 4);
@@ -75,10 +75,10 @@ const Block* Chunk::GetBlockInBounds(const glm::uvec3& position) const noexcept
 	return ((IsInBounds(position)) ? &m_Blocks[PositionToIndex(position)] : nullptr);
 }
 
-int Chunk::GetHighestBlockYPosition(int x, int z) const noexcept
+int Chunk::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
 {
-	for (int y = Chunk::CHUNK_HEIGHT; y > 0; y--)
-		if (GetBlock({ x, y, z })->GetBlockTypeData().isSolid)
+	for (uint8_t y = Chunk::CHUNK_HEIGHT; y > 0; y--)
+		if (GetBlock({ position.x, y, position.y })->GetBlockTypeData().isSolid)
 			return y;
 
 	return -1;
