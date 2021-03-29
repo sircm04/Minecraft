@@ -1,6 +1,8 @@
 #include "../../pch.h"
 #include "Player.h"
 
+#include "../../Assets.h"
+
 Player::Player(World* world) noexcept
 	: Mob(world, glm::vec3(), 10, 10, 9.0f)
 {

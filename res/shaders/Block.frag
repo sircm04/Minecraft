@@ -19,10 +19,10 @@ uniform vec3 fogColor;
 
 void main()
 {
-    //const vec3 sunDir = normalize(vec3(1, 3, 2));
-	//const float ambient = 0.4;
-	
-	//float diffuse = max(dot(s_Normal, sunDir), 0.0);
+//  const vec3 sunDir = normalize(vec3(1, 3, 2));
+//	const float ambient = 0.4;
+//	
+//	float diffuse = max(dot(s_Normal, sunDir), 0.0);
 	color = /*vec4(vec3(ambient + diffuse), 1.0) * */texture(image, s_TexCoord);
     float fogFactor = clamp((fogDist.y - distance(playerPosition, s_Position)) / (fogDist.y - fogDist.x), 0.0, 1.0);
 

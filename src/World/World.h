@@ -41,7 +41,9 @@ public:
 	const bool IsChunkLoaded(const glm::ivec2& position) const noexcept;
 	
 	std::unordered_map<Chunk*, glm::ivec2> GetNeighboringChunks(const glm::ivec3& position) noexcept;
+	std::unordered_map<Chunk*, glm::ivec2> GetNeighboringChunks(const glm::ivec2& position) noexcept;
 	void RefreshNeighboringChunks(const glm::ivec3& position) noexcept;
+	void RefreshNeighboringChunks(const glm::ivec2& position) noexcept;
 
 	void SetBlock(const glm::ivec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::ivec3& position) noexcept;
@@ -49,7 +51,7 @@ public:
 	Block* GetBlockInBounds(const glm::ivec3& position) noexcept;
 	const Block* GetBlockInBounds(const glm::ivec3& position) const noexcept;
 
-	int GetHighestBlockYPosition(const glm::ivec2& position) const noexcept;
+	uint8_t GetHighestBlockYPosition(const glm::ivec2& position) const noexcept;
 
 	const std::optional<glm::ivec3> GetTargetBlockPosition(glm::vec3 position, const glm::vec3& direction, int max, bool place = false) const noexcept;
 

@@ -45,6 +45,59 @@ void Chunk::Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) n
 	m_ChunkState = ChunkState::Generated;
 }
 
+void Chunk::GenerateTrees(World* world, const glm::ivec2& chunkPosition) noexcept
+{
+	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
+	{
+		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
+		{
+			const uint8_t y = GetHighestBlockYPosition({ x, z });
+
+			if (rand() % 10 + 1 == 1 && GetBlock({ x, y, z })->m_BlockType != BlockType::Leaves)
+			{
+				GenerateTree(world,
+				{
+					(chunkPosition.x << 4) + x,
+					y,
+					(chunkPosition.y << 4) + z
+				});
+			}
+		}
+	}
+
+	m_ChunkState = ChunkState::Complete;
+}
+
+void Chunk::GenerateTree(World* world, const glm::ivec3& worldPosition) noexcept
+{
+	for (int8_t i = 1; i < 5; ++i)
+		world->SetBlock({ worldPosition.x, worldPosition.y + i, worldPosition.z }, { BlockType::Log });
+
+	for (int8_t x = -1; x < 2; ++x)
+		for (int8_t z = -2; z < 3; ++z)
+			world->SetBlock({ worldPosition.x + x, worldPosition.y + 5, worldPosition.z + z }, { BlockType::Leaves });
+
+	for (int8_t x = -2; x < 3; ++x)
+		for (int8_t z = -1; z < 2; ++z)
+			world->SetBlock({ worldPosition.x + x, worldPosition.y + 5, worldPosition.z + z }, { BlockType::Leaves });
+
+	for (int8_t x = -1; x < 2; ++x)
+		for (int8_t z = -1; z < 2; ++z)
+			for (int8_t y = 5; y < 7; ++y)
+				world->SetBlock({ worldPosition.x + x, worldPosition.y + y, worldPosition.z + z }, { BlockType::Leaves });
+
+	for (int8_t x = -1; x < 2; ++x)
+			world->SetBlock({ worldPosition.x + x, worldPosition.y + 7, worldPosition.z }, { BlockType::Leaves });
+
+	for (int8_t z = -1; z < 2; ++z)
+		world->SetBlock({ worldPosition.x , worldPosition.y + 7, worldPosition.z + z }, { BlockType::Leaves });
+
+	world->SetBlock({ worldPosition.x + 2, worldPosition.y + 6, worldPosition.z }, { BlockType::Leaves });
+	world->SetBlock({ worldPosition.x - 2, worldPosition.y + 6, worldPosition.z }, { BlockType::Leaves });
+	world->SetBlock({ worldPosition.x, worldPosition.y + 6, worldPosition.z + 2 }, { BlockType::Leaves });
+	world->SetBlock({ worldPosition.x, worldPosition.y + 6, worldPosition.z - 2 }, { BlockType::Leaves });
+}
+
 void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept
 {
 	m_ChunkMesh.Generate(this, world, chunkPosition);
@@ -75,9 +128,9 @@ const Block* Chunk::GetBlockInBounds(const glm::uvec3& position) const noexcept
 	return ((IsInBounds(position)) ? &m_Blocks[PositionToIndex(position)] : nullptr);
 }
 
-int Chunk::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
+uint8_t Chunk::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
 {
-	for (uint8_t y = Chunk::CHUNK_HEIGHT; y > 0; y--)
+	for (uint8_t y = Chunk::CHUNK_HEIGHT - 1; y > 0; --y)
 		if (GetBlock({ position.x, y, position.y })->GetBlockTypeData().isSolid)
 			return y;
 
