@@ -3,8 +3,8 @@
 
 #include "Assets.h"
 #include "Renderer/TextRenderer.h"
-#include "Menu/LoadingScreenMenu.h"
-#include "Menu/InventoryMenu.h"
+
+const std::string Game::VERSION = "0.1.2";
 
 Game::~Game()
 {
@@ -65,6 +65,8 @@ void Game::Initialize()
 	if (glfwRawMouseMotionSupported())
 		glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
+	glfwSetWindowUserPointer(m_Window, this);
+
 	glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 	{
 		if (width == 0 || height == 0) return;
@@ -74,24 +76,26 @@ void Game::Initialize()
 
 	glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xpos, double ypos)
 	{
+		auto game = static_cast<Game*>(glfwGetWindowUserPointer(window));
+
 		static float lastX = xpos, lastY = ypos;
-		static float pitch = glm::degrees(glm::asin(g_Game->GetPlayer().m_Camera.front.y)),
-			yaw = glm::degrees(std::atan2(g_Game->GetPlayer().m_Camera.front.z, g_Game->GetPlayer().m_Camera.front.x));
+		static float pitch = glm::degrees(glm::asin(game->GetPlayer().m_Camera.front.y)),
+			yaw = glm::degrees(std::atan2(game->GetPlayer().m_Camera.front.z, game->GetPlayer().m_Camera.front.x));
 
 		float xoffset = (float) xpos - lastX;
 		float yoffset = lastY - (float) ypos;
 		lastX = (float) xpos;
 		lastY = (float) ypos;
 
-		xoffset *= g_Game->GetPlayer().m_Camera.sensitivity;
-		yoffset *= g_Game->GetPlayer().m_Camera.sensitivity;
+		xoffset *= game->GetPlayer().m_Camera.sensitivity;
+		yoffset *= game->GetPlayer().m_Camera.sensitivity;
 
 		yaw += xoffset;
 		pitch += yoffset;
 
 		pitch = std::clamp(pitch, -89.9f, 89.9f);
 		
-		g_Game->GetPlayer().m_Camera.front = glm::normalize(glm::vec3 {
+		game->GetPlayer().m_Camera.front = glm::normalize(glm::vec3 {
 			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 			sin(glm::radians(pitch)),
 			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
@@ -114,9 +118,9 @@ void Game::Initialize()
 
 	Assets::InitializeAssets();
 
-	Assets::SHADERS["BLOCK"]->Bind();
-	Assets::SHADERS["BLOCK"]->SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
-	Assets::SHADERS["BLOCK"]->SetVec3("fogColor", bottomSkyColor);
+	Assets::SHADERS.at("BLOCK").Bind();
+	Assets::SHADERS.at("BLOCK").SetVec2("fogDist", { World::REAL_WORLD_RADIUS * 0.75f, World::REAL_WORLD_RADIUS - (16 * 1.5f) });
+	Assets::SHADERS.at("BLOCK").SetVec3("fogColor", bottomSkyColor);
 
 	m_Player.m_Inventory = {
 		{
@@ -137,9 +141,9 @@ void Game::StartLoop()
 		return;
 	m_IsRunning = true;
 
-	m_Thread = std::thread([]()
+	m_Thread = std::thread([&]()
 	{
-		while (!glfwWindowShouldClose(g_Game->GetWindow()))
+		while (!glfwWindowShouldClose(this->GetWindow()))
 		{
 			static double deltaTime = 0, lastTime = 0;
 
@@ -147,7 +151,7 @@ void Game::StartLoop()
 			deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
 
-			g_Game->GetWorld().Update(deltaTime, &g_Game->GetPlayer(), g_Game->GetPlayer().m_Position);
+			this->GetWorld().Update(deltaTime, &this->GetPlayer(), this->GetPlayer().m_Position);
 		}
 	});
 
@@ -207,10 +211,10 @@ void Game::OnRender(int width, int height, double fps)
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
-		Assets::SHADERS["GUI"]->Bind();
-		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
-		Assets::MESHES["GUI"]->Bind();
-		Assets::TEXTURES["DIRT"]->Bind();
+		Assets::SHADERS.at("GUI").Bind();
+		Assets::SHADERS.at("GUI").SetMat4("projection", guiProjection);
+		Assets::MESHES.at("GUI").Bind();
+		Assets::TEXTURES.at("DIRT").Bind();
 
 		static constexpr float dirtSize = 57.07f;
 		const uint8_t dirtWidth = ((width / dirtSize) + 1),
@@ -220,7 +224,7 @@ void Game::OnRender(int width, int height, double fps)
 		{
 			for (uint8_t y = 0; y < dirtHeight; ++y)
 			{
-				Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+				Assets::SHADERS.at("GUI").SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 				{
 					x * dirtSize,
 					y * dirtSize,
@@ -231,12 +235,12 @@ void Game::OnRender(int width, int height, double fps)
 					dirtSize,
 					0.0f
 				}));
-				Assets::SHADERS["GUI"]->SetVec4("u_color", { 0.4f, 0.4f, 0.4f, 1.0f });
-				Assets::MESHES["GUI"]->Render();
+				Assets::SHADERS.at("GUI").SetVec4("u_color", { 0.4f, 0.4f, 0.4f, 1.0f });
+				Assets::MESHES.at("GUI").Render();
 			}
 		}
 
-		Assets::SHADERS["GUI"]->SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
+		Assets::SHADERS.at("GUI").SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
@@ -254,16 +258,16 @@ void Game::OnRender(int width, int height, double fps)
 
 		// Render skybox:
 
-		Assets::SHADERS["SKY"]->Bind();
-		Assets::SHADERS["SKY"]->SetMat4("view", glm::mat4(glm::mat3(view)));
-		Assets::SHADERS["SKY"]->SetMat4("projection", projection);
-		Assets::MESHES["SKY"]->Render();
+		Assets::SHADERS.at("SKY").Bind();
+		Assets::SHADERS.at("SKY").SetMat4("view", glm::mat4(glm::mat3(view)));
+		Assets::SHADERS.at("SKY").SetMat4("projection", projection);
+		Assets::MESHES.at("SKY").Render();
 
 		// Render sun:
 
-		Assets::SHADERS["SUN"]->Bind();
-		Assets::SHADERS["SUN"]->SetMat4("view", view);
-		Assets::SHADERS["SUN"]->SetMat4("projection", projection);
+		Assets::SHADERS.at("SUN").Bind();
+		Assets::SHADERS.at("SUN").SetMat4("view", view);
+		Assets::SHADERS.at("SUN").SetMat4("projection", projection);
 
 		static constexpr float sunSpeed = 0.005f;
 		glm::mat4 translation = glm::translate(glm::mat4(1.0f),
@@ -276,9 +280,9 @@ void Game::OnRender(int width, int height, double fps)
 		glm::mat4 lookAtMatrix = glm::inverse(glm::lookAt(sunPosition, m_Player.m_Position, { 0.0f, 0.0f, 1.0f }));
 		glm::mat4 sunMatrix = lookAtMatrix;
 
-		Assets::SHADERS["SUN"]->SetMat4("model", sunMatrix);
-		Assets::TEXTURES["SUN"]->Bind();
-		Assets::MESHES["SUN"]->Render();
+		Assets::SHADERS.at("SUN").SetMat4("model", sunMatrix);
+		Assets::TEXTURES.at("SUN").Bind();
+		Assets::MESHES.at("SUN").Render();
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
@@ -286,13 +290,13 @@ void Game::OnRender(int width, int height, double fps)
 
 		// Render world:
 
-		Assets::SHADERS["BLOCK"]->Bind();
-		Assets::ARRAY_TEXTURES["BLOCKS"]->Bind();
+		Assets::SHADERS.at("BLOCK").Bind();
+		Assets::ARRAY_TEXTURES.at("BLOCKS").Bind();
 
-		Assets::SHADERS["BLOCK"]->SetMat4("view", view);
-		Assets::SHADERS["BLOCK"]->SetMat4("projection", projection);
-		Assets::SHADERS["BLOCK"]->SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
-		Assets::SHADERS["BLOCK"]->SetVec3("playerPosition", m_Player.m_Position);
+		Assets::SHADERS.at("BLOCK").SetMat4("view", view);
+		Assets::SHADERS.at("BLOCK").SetMat4("projection", projection);
+		Assets::SHADERS.at("BLOCK").SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
+		Assets::SHADERS.at("BLOCK").SetVec3("playerPosition", m_Player.m_Position);
 
 		static ViewFrustum frustum;
 		frustum.Update(projection * view);
@@ -300,11 +304,29 @@ void Game::OnRender(int width, int height, double fps)
 
 		// Render entities:
 
-		Assets::SHADERS["ENTITY"]->Bind();
-		Assets::SHADERS["ENTITY"]->SetMat4("view", view);
-		Assets::SHADERS["ENTITY"]->SetMat4("projection", projection);
+		Assets::SHADERS.at("ENTITY").Bind();
+		Assets::SHADERS.at("ENTITY").SetMat4("view", view);
+		Assets::SHADERS.at("ENTITY").SetMat4("projection", projection);
 
 		m_World.RenderEntities();
+
+		// Render target block hitbox:
+
+		std::optional<glm::ivec3> targetBlockPosition = m_Player.GetTargetBlockPosition(10);
+
+		if (targetBlockPosition)
+		{
+			glDepthFunc(GL_LEQUAL);
+			glLineWidth(2.0f);
+
+			Assets::SHADERS.at("BLOCK_HITBOX").Bind();
+			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("view", view);
+			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("projection", projection);
+			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("model", glm::translate(glm::mat4(1.0f), (glm::vec3) *targetBlockPosition));
+			Assets::MESHES.at("BLOCK_HITBOX").Bind();
+			Assets::MESHES.at("BLOCK_HITBOX").Render(GL_LINES);
+			glDepthFunc(GL_LESS);
+		}
 
 		glDisable(GL_MULTISAMPLE);
 		glDisable(GL_DEPTH_TEST);
@@ -318,14 +340,14 @@ void Game::OnRender(int width, int height, double fps)
 
 		// Render hearts:
 
-		Assets::SHADERS["GUI"]->Bind();
-		Assets::SHADERS["GUI"]->SetMat4("projection", guiProjection);
-		Assets::MESHES["GUI"]->Bind();
+		Assets::SHADERS.at("GUI").Bind();
+		Assets::SHADERS.at("GUI").SetMat4("projection", guiProjection);
+		Assets::MESHES.at("GUI").Bind();
 
-		Assets::TEXTURES["HEART"]->Bind();
+		Assets::TEXTURES.at("HEART").Bind();
 		for (uint8_t i = 0; i < m_Player.m_Health; ++i)
 		{
-			Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+			Assets::SHADERS.at("GUI").SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 			{
 				(2.0f * scale) + (i * (8.0f * scale)),
 				height - (11.0f * scale),
@@ -336,19 +358,23 @@ void Game::OnRender(int width, int height, double fps)
 				9.0f * scale,
 				0.0f
 			}));
-			Assets::MESHES["GUI"]->Render();
+			Assets::MESHES.at("GUI").Render();
 		}
 
 		// Render text:
 
 		TextRenderer::Begin();
-		TextRenderer::DrawText("sircm04's Minecraft Clone (v0.1.1)", { (2.0f * scale), (2.0f * scale) }, scale);
+		TextRenderer::DrawText("sircm04's Minecraft Clone (v" + VERSION + ")", { (2.0f * scale), (2.0f * scale) }, scale);
 		TextRenderer::DrawText(std::to_string(static_cast<int>(fps)) + " fps", { (2.0f * scale), (11.0f * scale) }, scale);
-		TextRenderer::DrawText("XYZ: "
+		TextRenderer::DrawText("Position: "
 			+ std::to_string(static_cast<int>(m_Player.m_Position.x)) + " "
 			+ std::to_string(static_cast<int>(m_Player.m_Position.y)) + " "
 			+ std::to_string(static_cast<int>(m_Player.m_Position.z)),
 			{ (2.0f * scale), (20.0f * scale) }, scale);
+		const glm::ivec3 direction = glm::round(m_Player.m_Camera.front);
+		TextRenderer::DrawText("Direction: " + std::to_string(direction.x) + " " + std::to_string(direction.y) + " " + std::to_string(direction.z), { (2.0f * scale), (29.0f * scale) }, scale);
+		TextRenderer::DrawText("Day: " + std::to_string(static_cast<int>((glfwGetTime() * sunSpeed) / 6.283185f) + 1), { (2.0f * scale), (38.0f * scale) }, scale);
+		TextRenderer::DrawText("Block In Hand: " + GetBlockTypeData(m_Player.m_BlockInHand).name, { (2.0f * scale), (47.0f * scale) }, scale);
 		TextRenderer::End();
 
 		// Render crosshair:
@@ -356,9 +382,9 @@ void Game::OnRender(int width, int height, double fps)
 		glEnable(GL_MULTISAMPLE);
 		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 
-		Assets::MESHES["GUI"]->Bind();
-		Assets::TEXTURES["CROSSHAIR"]->Bind();
-		Assets::SHADERS["GUI"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+		Assets::MESHES.at("GUI").Bind();
+		Assets::TEXTURES.at("CROSSHAIR").Bind();
+		Assets::SHADERS.at("GUI").SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 		{
 			(static_cast<float>(width) * 0.5f) - (4.5f * scale),
 			(static_cast<float>(height) * 0.5f) - (4.5f * scale),
@@ -369,17 +395,17 @@ void Game::OnRender(int width, int height, double fps)
 			9.0f * scale,
 			0.0f
 		}));
-		Assets::MESHES["GUI"]->Render();
+		Assets::MESHES.at("GUI").Render();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Render hotbar:
 
-		Assets::SHADERS["GUI_ARRAY"]->Bind();
-		Assets::SHADERS["GUI_ARRAY"]->SetMat4("projection", guiProjection);
-		Assets::MESHES["GUI"]->Bind();
-		Assets::ARRAY_TEXTURES["ITEMS"]->Bind();
-		Assets::SHADERS["GUI_ARRAY"]->SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
+		Assets::SHADERS.at("GUI_ARRAY").Bind();
+		Assets::SHADERS.at("GUI_ARRAY").SetMat4("projection", guiProjection);
+		Assets::MESHES.at("GUI").Bind();
+		Assets::ARRAY_TEXTURES.at("ITEMS").Bind();
+		Assets::SHADERS.at("GUI_ARRAY").SetVec4("u_color", { 1.0f, 1.0f, 1.0f, 1.0f });
 
 		const int hotbarWidth = m_Player.m_Inventory.items.size();
 		for (int i = 0; i < m_Player.m_Inventory.items.size(); ++i)
@@ -388,7 +414,7 @@ void Game::OnRender(int width, int height, double fps)
 
 			if (item)
 			{
-				Assets::SHADERS["GUI_ARRAY"]->SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
+				Assets::SHADERS.at("GUI_ARRAY").SetMat4("model", glm::scale(glm::translate(glm::mat4(1.0f),
 				{
 					(width * 0.5f) + (i - (hotbarWidth * 0.5f)) * (16.0f * scale),
 					height - (16.0f * scale),
@@ -399,8 +425,8 @@ void Game::OnRender(int width, int height, double fps)
 					(16.0f * scale),
 					0.0f
 				}));
-				Assets::SHADERS["GUI_ARRAY"]->SetFloat("texZ", static_cast<float>(item->m_ItemType));
-				Assets::MESHES["GUI"]->Render();
+				Assets::SHADERS.at("GUI_ARRAY").SetFloat("texZ", static_cast<float>(item->m_ItemType));
+				Assets::MESHES.at("GUI").Render();
 			}
 		}
 

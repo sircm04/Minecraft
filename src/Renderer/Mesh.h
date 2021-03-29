@@ -11,10 +11,10 @@ public:
 	Mesh(const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const VertexBufferLayout& layout);
 	Mesh(unsigned int vertexSize, unsigned int indexCount, const VertexBufferLayout& layout);
 	
-	void Bind();
-	void Unbind();
+	void Bind() const;
+	void Unbind() const;
 
-	void Render();
+	void Render(int mode = GL_TRIANGLES) const;
 
 private:
 	VertexArray m_VertexArray;

@@ -49,32 +49,33 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 					0, rightBlockPosition.y, rightBlockPosition.z }));
 				const Block* topBlock = chunk->GetBlockInBounds(topBlockPosition);
 
-				if (block->m_BlockType != BlockType::Air)
+				if (block->GetBlockTypeData().isSolid)
 				{
 					const glm::ivec3& realPosition = glm::ivec3 { x + realChunkPosition.x, y, z + realChunkPosition.y };
 
-					if (frontBlock && frontBlock->m_BlockType == BlockType::Air)
-						AddBlockFace(world, realPosition, FRONT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().m_Faces.value()[0]);
+					if (frontBlock && frontBlock->GetBlockTypeData().isTransparent)
+						AddBlockFace(world, realPosition, FRONT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().faces.value()[0]);
 
-					if (rightBlock && rightBlock->m_BlockType == BlockType::Air)
-						AddBlockFace(world, realPosition, RIGHT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().m_Faces.value()[2]);
+					if (rightBlock && rightBlock->GetBlockTypeData().isTransparent)
+						AddBlockFace(world, realPosition, RIGHT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().faces.value()[2]);
 
-					if (!topBlock || topBlock->m_BlockType == BlockType::Air)
-						AddBlockFace(world, realPosition, TOP_BLOCK_FACE_VERTICES, block->GetBlockTypeData().m_Faces.value()[4]);
+					if (!topBlock || topBlock->GetBlockTypeData().isTransparent)
+						AddBlockFace(world, realPosition, TOP_BLOCK_FACE_VERTICES, block->GetBlockTypeData().faces.value()[4]);
 				}
-				else
+				
+				if (block->GetBlockTypeData().isTransparent)
 				{
-					if (frontBlock && frontBlock->m_BlockType != BlockType::Air)
+					if (frontBlock && frontBlock->GetBlockTypeData().isSolid)
 						AddBlockFace(world, { frontBlockPosition.x + realChunkPosition.x, frontBlockPosition.y, frontBlockPosition.z + realChunkPosition.y },
-							BACK_BLOCK_FACE_VERTICES, frontBlock->GetBlockTypeData().m_Faces.value()[1]);
+							BACK_BLOCK_FACE_VERTICES, frontBlock->GetBlockTypeData().faces.value()[1]);
 
-					if (rightBlock && rightBlock->m_BlockType != BlockType::Air)
+					if (rightBlock && rightBlock->GetBlockTypeData().isSolid)
 						AddBlockFace(world, { rightBlockPosition.x + realChunkPosition.x, rightBlockPosition.y, rightBlockPosition.z + realChunkPosition.y },
-							LEFT_BLOCK_FACE_VERTICES, rightBlock->GetBlockTypeData().m_Faces.value()[3]);
+							LEFT_BLOCK_FACE_VERTICES, rightBlock->GetBlockTypeData().faces.value()[3]);
 
-					if (topBlock && topBlock->m_BlockType != BlockType::Air)
+					if (topBlock && topBlock->GetBlockTypeData().isSolid)
 						AddBlockFace(world, { topBlockPosition.x + realChunkPosition.x, topBlockPosition.y, topBlockPosition.z + realChunkPosition.y },
-							BOTTOM_BLOCK_FACE_VERTICES, topBlock->GetBlockTypeData().m_Faces.value()[5]);
+							BOTTOM_BLOCK_FACE_VERTICES, topBlock->GetBlockTypeData().faces.value()[5]);
 				}
 			}
 		}

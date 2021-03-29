@@ -15,20 +15,20 @@ Mesh::Mesh(unsigned int vertexSize, unsigned int indexCount, const VertexBufferL
 	m_VertexArray.AddBuffer(m_VertexBuffer, layout);
 }
 
-void Mesh::Bind()
+void Mesh::Bind() const
 {
 	m_VertexArray.Bind();
 	m_IndexBuffer.Bind();
 }
 
-void Mesh::Unbind()
+void Mesh::Unbind() const
 {
 	m_VertexArray.Unbind();
 	m_IndexBuffer.Unbind();
 }
 
-void Mesh::Render()
+void Mesh::Render(int mode) const
 {
 	Bind();
-	glDrawElements(GL_TRIANGLES, m_IndexBuffer.GetCount(), GL_UNSIGNED_INT, nullptr);
+	glDrawElements(mode, m_IndexBuffer.GetCount(), GL_UNSIGNED_INT, nullptr);
 }

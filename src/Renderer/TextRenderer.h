@@ -69,8 +69,8 @@ namespace TextRenderer
 				x = (charPosition % MAX_LENGTH) * 8,
 				y = (charPosition / MAX_LENGTH) * 8;
 
-			static float imageWidth = Assets::TEXTURES["FONT"]->GetWidth(),
-				imageHeight = Assets::TEXTURES["FONT"]->GetHeight();
+			static float imageWidth = Assets::TEXTURES.at("FONT").GetWidth(),
+				imageHeight = Assets::TEXTURES.at("FONT").GetHeight();
 
 			Margins margins;
 			if (MARGINS.find(text[i]) != MARGINS.end())
@@ -111,8 +111,8 @@ namespace TextRenderer
 
 		auto mesh = Mesh(vertices, indices, guiLayout);
 
-		Assets::TEXTURES["FONT"]->Bind();
-		Assets::SHADERS["GUI"]->SetMat4("model", glm::mat4(1.0f));
+		Assets::TEXTURES.at("FONT").Bind();
+		Assets::SHADERS.at("GUI").SetMat4("model", glm::mat4(1.0f));
 
 		mesh.Bind();
 		mesh.Render();

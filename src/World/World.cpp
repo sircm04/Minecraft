@@ -75,24 +75,33 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			zNegativeDistance = -radius + playerChunkPosition.y;
 
 		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
-			futures.emplace_back(std::async(std::launch::async, code, x, zNegativeDistance, zPositiveDistance, radius2, playerChunkPosition));
-	};
-
-	loop(WORLD_OUTER_RADIUS, worldOuterRadius2, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
-		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 		{
-			const glm::ivec2 chunkPosition = { x, z };
-
-			if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
+			for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
 			{
-				if (!GetChunk(chunkPosition))
-				{
-					Chunk chunk;
-					chunk.Generate(&m_Noise, chunkPosition);
-					SetChunk(chunkPosition, std::move(chunk));
-				}
+				const glm::ivec2 chunkPosition = { x, z };
+
+				if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
+					futures.emplace_back(std::async(std::launch::async, code, chunkPosition));
 			}
 		}
+	};
+
+	loop(WORLD_OUTER_RADIUS, worldOuterRadius2, [&](const glm::ivec2& chunkPosition)
+	{
+		if (!GetChunk(chunkPosition))
+		{
+			Chunk chunk;
+			chunk.Generate(&m_Noise, chunkPosition);
+			SetChunk(chunkPosition, std::move(chunk));
+		}
+	});
+
+	loop(WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
+	{
+		Chunk* chunk = GetChunk(chunkPosition);
+
+		if (chunk && *chunk->GetChunkState() == ChunkState::Generated)
+			chunk->GenerateTrees(this, chunkPosition);
 	});
 
 	if (m_FirstLoad)
@@ -107,20 +116,13 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		m_FirstLoad = false;
 	}
 
-	loop(WORLD_RADIUS, worldRadius2, [&](int x, int zNegativeDistance, int zPositiveDistance, int radius2, const glm::ivec2& playerChunkPosition) {
-		for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
-		{
-			const glm::ivec2 chunkPosition = { x, z };
+	loop(WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
+	{
+		Chunk* chunk = GetChunk(chunkPosition);
 
-			if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
-			{
-				Chunk* chunk = GetChunk(chunkPosition);
-
-				if (chunk && *chunk->GetChunkState() == ChunkState::Generated
-					&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
-					chunk->GenerateMesh(this, chunkPosition);
-			}
-		}
+		if (chunk && *chunk->GetChunkState() == ChunkState::Complete
+			&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
+			chunk->GenerateMesh(this, chunkPosition);
 	});
 }
 
@@ -168,7 +170,7 @@ const Chunk* World::GetChunk(const glm::ivec2& position) const noexcept
 const bool World::IsChunkLoaded(const glm::ivec2& position) const noexcept
 {
 	const auto& found = m_Chunks.find(position);
-	return found != m_Chunks.end() && *found->second.GetChunkState() == ChunkState::Generated;
+	return found != m_Chunks.end() && *found->second.GetChunkState() >= ChunkState::Generated;
 }
 
 std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::ivec3& position) noexcept
@@ -188,13 +190,35 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 		{-1,  1, 0b11 }, { 1, -1, 0b11 }
 	};
 
-	for (auto offset : offsets) {
+	for (auto offset : offsets)
+	{
 		auto target = chunkPosition + glm::ivec2 { offset };
 
 		if ((!(offset.z & 1) || xAtMax) && (!(offset.z & 2) || zAtMax))
 			chunks.emplace(GetChunk(target), target);
 	}
 	
+	return chunks;
+}
+
+std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::ivec2& position) noexcept
+{
+	std::unordered_map<Chunk*, glm::ivec2> chunks;
+
+	constexpr glm::ivec2 offsets[] = {
+		{ -1,  0 }, { 0, -1 },
+		{  1,  0 }, { 0,  1 },
+		{ -1, -1 }, { 1,  1 },
+		{ -1,  1 }, { 1, -1 }
+	};
+
+	for (auto offset : offsets)
+	{
+		auto target = position + offset;
+
+		chunks.emplace(GetChunk(target), target);
+	}
+
 	return chunks;
 }
 
@@ -205,10 +229,18 @@ void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 		element.first->GenerateMesh(this, element.second);
 }
 
+void World::RefreshNeighboringChunks(const glm::ivec2& position) noexcept
+{
+	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
+	for (auto element : neighboringChunks)
+		element.first->GenerateMesh(this, element.second);
+}
+
 void World::SetBlock(const glm::ivec3& position, const Block& block) noexcept
 {
 	Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));
-	chunk->SetBlock(GetBlockPositionInChunk(position), block);
+	if (chunk)
+		chunk->SetBlock(GetBlockPositionInChunk(position), block);
 }
 
 Block* World::GetBlock(const glm::ivec3& position) noexcept
@@ -235,7 +267,7 @@ const Block* World::GetBlockInBounds(const glm::ivec3& position) const noexcept
 	return ((chunk) ? chunk->GetBlockInBounds(GetBlockPositionInChunk(position)) : nullptr);
 }
 
-int World::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
+uint8_t World::GetHighestBlockYPosition(const glm::ivec2& position) const noexcept
 {
 	const Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.y }));
 

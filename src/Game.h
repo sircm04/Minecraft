@@ -16,6 +16,8 @@ private:
 	Player m_Player = Player(&m_World);
 
 public:
+	static const std::string VERSION;
+
 	Game() noexcept = default;
 	~Game();
 
@@ -31,5 +33,3 @@ public:
 	World& GetWorld() noexcept { return m_World; }
 	Player& GetPlayer() noexcept { return m_Player; }
 };
-
-extern Game* g_Game;

@@ -9,6 +9,7 @@ enum class ChunkState : uint8_t
 {
 	Ungenerated,
 	Generated,
+	Complete,
 	Removed
 };
 
@@ -37,6 +38,8 @@ public:
 	Chunk& operator=(const Chunk&) = delete;
 
 	void Generate(siv::PerlinNoise* noise, const glm::ivec2& chunkPosition) noexcept;
+	void GenerateTrees(World* world, const glm::ivec2& chunkPosition) noexcept;
+	void GenerateTree(World* world, const glm::ivec3& worldPosition) noexcept;
 
 	void GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept;
 
@@ -53,7 +56,7 @@ public:
 	Block* GetBlockInBounds(const glm::uvec3& position) noexcept;
 	const Block* GetBlockInBounds(const glm::uvec3& position) const noexcept;
 
-	int GetHighestBlockYPosition(const glm::ivec2& position) const noexcept;
+	uint8_t GetHighestBlockYPosition(const glm::ivec2& position) const noexcept;
 
 	const ChunkState* GetChunkState() const noexcept { return &m_ChunkState; }
 	void SetRemoved() noexcept { m_ChunkState = ChunkState::Removed; }
