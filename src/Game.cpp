@@ -4,7 +4,7 @@
 #include "Assets.h"
 #include "Renderer/TextRenderer.h"
 
-const std::string Game::VERSION = "0.1.2";
+const std::string Game::VERSION = "0.1.3";
 
 Game::~Game()
 {
@@ -298,9 +298,13 @@ void Game::OnRender(int width, int height, double fps)
 		Assets::SHADERS.at("BLOCK").SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
 		Assets::SHADERS.at("BLOCK").SetVec3("playerPosition", m_Player.m_Position);
 
+		glDisable(GL_BLEND);
+
 		static ViewFrustum frustum;
 		frustum.Update(projection * view);
 		m_World.RenderChunks(frustum);
+
+		glEnable(GL_BLEND);
 
 		// Render entities:
 
@@ -322,7 +326,7 @@ void Game::OnRender(int width, int height, double fps)
 			Assets::SHADERS.at("BLOCK_HITBOX").Bind();
 			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("view", view);
 			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("projection", projection);
-			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("model", glm::translate(glm::mat4(1.0f), (glm::vec3) *targetBlockPosition));
+			Assets::SHADERS.at("BLOCK_HITBOX").SetMat4("model", glm::translate(glm::mat4(1.0f), static_cast<glm::vec3>(*targetBlockPosition)));
 			Assets::MESHES.at("BLOCK_HITBOX").Bind();
 			Assets::MESHES.at("BLOCK_HITBOX").Render(GL_LINES);
 			glDepthFunc(GL_LESS);
@@ -375,6 +379,9 @@ void Game::OnRender(int width, int height, double fps)
 		TextRenderer::DrawText("Direction: " + std::to_string(direction.x) + " " + std::to_string(direction.y) + " " + std::to_string(direction.z), { (2.0f * scale), (29.0f * scale) }, scale);
 		TextRenderer::DrawText("Day: " + std::to_string(static_cast<int>((glfwGetTime() * sunSpeed) / 6.283185f) + 1), { (2.0f * scale), (38.0f * scale) }, scale);
 		TextRenderer::DrawText("Block In Hand: " + GetBlockTypeData(m_Player.m_BlockInHand).name, { (2.0f * scale), (47.0f * scale) }, scale);
+		std::string isFlying = "Is Flying: ";
+		isFlying.append(m_Player.m_IsFlying ? "true" : "false");
+		TextRenderer::DrawText(isFlying, { (2.0f * scale), (55.0f * scale) }, scale);
 		TextRenderer::End();
 
 		// Render crosshair:

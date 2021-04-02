@@ -57,7 +57,7 @@ namespace Assets
 			"res/images/grass_side.png", "res/images/grass_top.png", "res/images/grass_bottom.png",
 			"res/images/stone.png", "res/images/cobblestone.png", "res/images/bedrock.png",
 			"res/images/wood.png", "res/images/log_side.png", "res/images/log_top.png",
-			"res/images/leaves.png"
+			"res/images/leaves.png", "res/images/glass.png"
 		}, 16, 16));
 
 		ARRAY_TEXTURES.emplace(std::piecewise_construct, std::forward_as_tuple("ITEMS"), std::forward_as_tuple(std::vector<std::string> {

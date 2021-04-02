@@ -12,7 +12,7 @@ Player::Player(World* world) noexcept
 void Player::Input(GLFWwindow* window, double deltaTime)
 {
 	static float clickDelay[3];
-	static constexpr uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(9));
+	static constexpr uint8_t maxBlockTypeKeys = std::min(static_cast<uint8_t>(BlockType::Count), static_cast<uint8_t>(10));
 	static glm::vec3 front, newPosition;
 	
 	m_Speed = ((m_IsFlying) ? 9.0f : 5.5f);
@@ -85,7 +85,7 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 	{
 		m_IsFlying = !m_IsFlying;
 		if (m_IsFlying)
-			m_VelocityY = 0.0f;
+			m_VelocityY = 5.0f;
 		pressed = true;
 	}
 
@@ -136,15 +136,24 @@ void Player::Move(const glm::vec3& newPosition) noexcept
 
 void Player::Update(double deltaTime) noexcept
 {
-	if (!m_IsFlying)
-	{
-		if (m_VelocityY < 0.0f && IsStandingOnGround())
-			m_VelocityY = 0.0f;
-
+	if ((m_IsFlying && m_VelocityY > 0.0f) || !m_IsFlying)
 		m_VelocityY += GRAVITY * deltaTime;
 
-		Move(glm::vec3 { m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z });
+	bool isOnGround = IsStandingOnGround();
+
+	if (isOnGround || m_IsFlying)
+	{
+		if (m_VelocityY < 0.0f)
+			m_VelocityY = 0.0f;
 	}
+
+	if (isOnGround)
+	{
+		if (m_VelocityY <= 0.0f)
+			m_IsFlying = false;
+	}
+
+	Move(glm::vec3 { m_Position.x, m_Position.y + (m_VelocityY * deltaTime), m_Position.z });
 
 	m_Camera.position = m_Position;
 }

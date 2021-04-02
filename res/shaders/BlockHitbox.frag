@@ -6,5 +6,5 @@ in vec3 s_Position;
 
 void main()
 {
-	color = vec4(0.0, 0.0, 0.0, 0.5);
+	color = vec4(0.0, 0.0, 0.0, 0.75);
 }
