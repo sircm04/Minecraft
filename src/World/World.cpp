@@ -101,7 +101,10 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		Chunk* chunk = GetChunk(chunkPosition);
 
 		if (chunk && *chunk->GetChunkState() == ChunkState::Generated)
+		{
 			chunk->GenerateTrees(this, chunkPosition);
+			RefreshNeighboringChunks(chunkPosition);
+		}
 	});
 
 	if (m_FirstLoad)
@@ -226,14 +229,16 @@ void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 {
 	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
 	for (auto element : neighboringChunks)
-		element.first->GenerateMesh(this, element.second);
+		if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+			element.first->GenerateMesh(this, element.second);
 }
 
 void World::RefreshNeighboringChunks(const glm::ivec2& position) noexcept
 {
 	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
 	for (auto element : neighboringChunks)
-		element.first->GenerateMesh(this, element.second);
+		if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+			element.first->GenerateMesh(this, element.second);
 }
 
 void World::SetBlock(const glm::ivec3& position, const Block& block) noexcept

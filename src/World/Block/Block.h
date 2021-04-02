@@ -11,6 +11,7 @@ enum class BlockType : uint8_t
 	Wood,
 	Log,
 	Leaves,
+	Glass,
 
 	Count
 };
@@ -34,7 +35,8 @@ static const BlockTypeData BLOCK_TYPE_DATA[] =
 	{ "Bedrock", std::array { 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f } },
 	{ "Wood", std::array { 6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f } },
 	{ "Log", std::array { 7.0f, 7.0f, 7.0f, 7.0f, 8.0f, 8.0f } },
-	{ "Leaves", std::array { 9.0f, 9.0f, 9.0f, 9.0f, 9.0f, 9.0f }, true, true }
+	{ "Leaves", std::array { 9.0f, 9.0f, 9.0f, 9.0f, 9.0f, 9.0f }, true, true },
+	{ "Glass", std::array { 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f }, true, true }
 };
 
 static const BlockTypeData& GetBlockTypeData(BlockType blockType) noexcept
