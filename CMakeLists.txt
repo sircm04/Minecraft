@@ -35,7 +35,7 @@ target_include_directories(Minecraft PUBLIC
     deps/stb_image/)
 
 target_precompile_headers(Minecraft PRIVATE src/pch.h)
-target_compile_options(Minecraft PRIVATE -W4 -MP -std:c++17)
+target_compile_options(Minecraft PRIVATE -MP -std=c++17)
 
 if (MSVC)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Minecraft)
