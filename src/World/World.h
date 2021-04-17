@@ -9,7 +9,7 @@ class Player;
 class World
 {
 public:
-	static constexpr uint16_t WORLD_RADIUS = 24, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
+	static constexpr uint16_t WORLD_RADIUS = 5, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
 		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
 
 private:
@@ -18,12 +18,13 @@ private:
 	siv::PerlinNoise m_Noise;
 	std::mt19937 m_NoiseRandom;
 
-	mutable std::mutex m_MutexLock;
+	mutable std::mutex m_MainMutexLock, m_MutexLock, m_JobsMutex;
 
 public:
 	bool m_FirstLoad = true;
 
 	World() noexcept;
+	~World() noexcept;
 
 	void Update(double deltaTime, Player* player, const glm::vec3& playerPosition);
 	void RenderChunks(const ViewFrustum& frustum);

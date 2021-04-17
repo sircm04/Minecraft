@@ -143,7 +143,7 @@ void Game::StartLoop()
 
 	m_Thread = std::thread([&]()
 	{
-		while (!glfwWindowShouldClose(this->GetWindow()))
+		while (!glfwWindowShouldClose(m_Window))
 		{
 			static double deltaTime = 0, lastTime = 0;
 
@@ -151,7 +151,7 @@ void Game::StartLoop()
 			deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
 
-			this->GetWorld().Update(deltaTime, &this->GetPlayer(), this->GetPlayer().m_Position);
+			m_World.Update(deltaTime, &m_Player, m_Player.m_Position);
 		}
 	});
 
@@ -297,6 +297,7 @@ void Game::OnRender(int width, int height, double fps)
 		Assets::SHADERS.at("BLOCK").SetMat4("projection", projection);
 		Assets::SHADERS.at("BLOCK").SetMat4("model", glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }));
 		Assets::SHADERS.at("BLOCK").SetVec3("playerPosition", m_Player.m_Position);
+		//Assets::SHADERS.at("BLOCK").SetVec3("sunDir", glm::normalize(sunPosition - m_Player.m_Position));
 
 		glDisable(GL_BLEND);
 

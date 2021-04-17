@@ -3,12 +3,47 @@
 
 #include "../Entity/Mob/Player.h"
 #include "../Entity/Mob/Cow.h"
+#include "../Utils/Timer.h"
+
+struct Job
+{
+	std::function<void(const glm::ivec2&)> job;
+	const glm::ivec2& chunkPosition;
+};
+
+std::vector<Job> m_Jobs;
+std::vector<std::thread> m_Threads;
 
 World::World() noexcept
 {
 	std::random_device rand;
 	m_NoiseRandom = std::mt19937(rand());
 	m_Noise = siv::PerlinNoise(m_NoiseRandom);
+
+	for (int i = 0; i < 32; ++i)
+	{
+		m_Threads.push_back(std::thread([&]()
+		{
+			while (true)
+			{
+				std::unique_lock lock(m_JobsMutex);
+
+				if (!m_Jobs.empty()) {
+					auto job = m_Jobs.back();
+					m_Jobs.pop_back();
+					std::cout << job.chunkPosition.x << ", " << job.chunkPosition.y << std::endl;
+					lock.unlock();
+					job.job(job.chunkPosition);
+				}
+			}
+		}));
+	}
+}
+
+World::~World() noexcept
+{
+	for (auto it = m_Threads.begin(); it != m_Threads.end(); ++it)
+		it->join();
 }
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
@@ -32,20 +67,16 @@ void World::RenderChunks(const ViewFrustum& frustum)
 		if (*it->second.GetChunkState() == ChunkState::Removed)
 		{
 			it = m_Chunks.erase(it);
+			continue;
 		}
-		else
-		{
-			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Generated)
-				it->second.m_ChunkMesh.BufferMesh();
 
-			if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-			{
-				it->second.m_ChunkMesh.Bind();
-				it->second.m_ChunkMesh.Render(frustum, it->first);
-			}
+		if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Generated)
+			it->second.m_ChunkMesh.BufferMesh();
 
-			++it;
-		}
+		if (it->second.m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+			it->second.m_ChunkMesh.Render(frustum, it->first);
+
+		++it;
 	}
 }
 
@@ -57,6 +88,8 @@ void World::RenderEntities()
 
 void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 {
+	std::lock_guard lock(m_MainMutexLock);
+
 	static constexpr unsigned int worldOuterRadius2 = WORLD_OUTER_RADIUS * WORLD_OUTER_RADIUS,
 		worldRadius2 = WORLD_RADIUS * WORLD_RADIUS;
 
@@ -66,7 +99,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 	auto loop = [&](unsigned int radius, unsigned int radius2, auto&& code)
 	{
-		//Timer timer("World::UpdateChunks subloop");
+		Timer timer("World::UpdateChunks subloop");
 		std::vector<std::future<void>> futures;
 
 		int xPositiveDistance = radius + playerChunkPosition.x,
@@ -81,8 +114,17 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 				const glm::ivec2 chunkPosition = { x, z };
 
 				if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
-					futures.emplace_back(std::async(std::launch::async, code, chunkPosition));
+				{
+					std::scoped_lock lk(m_JobsMutex);
+
+					m_Jobs.push_back({ code, chunkPosition });
+				}
 			}
+		}
+
+		while (true) {
+			std::scoped_lock lk(m_JobsMutex);
+			if (m_Jobs.empty()) break;
 		}
 	};
 
@@ -110,23 +152,26 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 	if (m_FirstLoad)
 	{
 		glm::ivec2 playerPosition = floor(glm::vec2 { player->m_Position.x, player->m_Position.z });
-		uint8_t y = 0;
-		while ((y = GetHighestBlockYPosition(playerPosition)) == -1);
-		player->m_Position.x += 0.5f;
+		uint8_t y = GetHighestBlockYPosition(playerPosition);
+		if (y == -1)
+			player->m_IsFlying = true;
+		player->m_Position.x += 8.5f;
 		player->m_Position.y = (y + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y));
-		player->m_Position.z += 0.5f;
+		player->m_Position.z += 8.5f;
 		AddEntity<Cow>(this, player->m_Position);
-		m_FirstLoad = false;
 	}
 
 	loop(WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
 	{
 		Chunk* chunk = GetChunk(chunkPosition);
-
+		
 		if (chunk && *chunk->GetChunkState() == ChunkState::Complete
 			&& chunk->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Ungenerated)
 			chunk->GenerateMesh(this, chunkPosition);
 	});
+
+	if (m_FirstLoad)
+		m_FirstLoad = false;
 }
 
 void World::UpdateEntities(double deltaTime)
@@ -160,6 +205,7 @@ void World::SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept
 
 Chunk* World::GetChunk(const glm::ivec2& position) noexcept
 {
+	std::lock_guard lock(m_MutexLock);
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }

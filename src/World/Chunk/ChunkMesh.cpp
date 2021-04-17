@@ -145,7 +145,7 @@ void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, cons
 
 void ChunkMesh::BufferMesh() noexcept
 {
-	m_Mesh = std::make_unique<Mesh>(m_Vertices, m_Indices, *getLayoutInstance());
+	m_Mesh = std::make_unique<Mesh>(m_Vertices, m_Indices, *GetLayoutInstance());
 	ClearMesh();
 
 	m_ChunkMeshState = ChunkMeshState::Complete;

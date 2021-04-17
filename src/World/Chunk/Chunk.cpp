@@ -70,32 +70,32 @@ void Chunk::GenerateTrees(World* world, const glm::ivec2& chunkPosition) noexcep
 
 void Chunk::GenerateTree(World* world, const glm::ivec3& worldPosition) noexcept
 {
-	for (int8_t i = 1; i < 5; ++i)
-		world->SetBlock({ worldPosition.x, worldPosition.y + i, worldPosition.z }, { BlockType::Log });
-
 	for (int8_t x = -1; x < 2; ++x)
 		for (int8_t z = -2; z < 3; ++z)
-			world->SetBlock({ worldPosition.x + x, worldPosition.y + 5, worldPosition.z + z }, { BlockType::Leaves });
+			world->SetBlock({ worldPosition.x + x, worldPosition.y + 4, worldPosition.z + z }, { BlockType::Leaves });
 
 	for (int8_t x = -2; x < 3; ++x)
 		for (int8_t z = -1; z < 2; ++z)
-			world->SetBlock({ worldPosition.x + x, worldPosition.y + 5, worldPosition.z + z }, { BlockType::Leaves });
+			world->SetBlock({ worldPosition.x + x, worldPosition.y + 4, worldPosition.z + z }, { BlockType::Leaves });
 
 	for (int8_t x = -1; x < 2; ++x)
 		for (int8_t z = -1; z < 2; ++z)
-			for (int8_t y = 5; y < 7; ++y)
+			for (int8_t y = 5; y < 6; ++y)
 				world->SetBlock({ worldPosition.x + x, worldPosition.y + y, worldPosition.z + z }, { BlockType::Leaves });
 
 	for (int8_t x = -1; x < 2; ++x)
-			world->SetBlock({ worldPosition.x + x, worldPosition.y + 7, worldPosition.z }, { BlockType::Leaves });
+			world->SetBlock({ worldPosition.x + x, worldPosition.y + 6, worldPosition.z }, { BlockType::Leaves });
 
 	for (int8_t z = -1; z < 2; ++z)
-		world->SetBlock({ worldPosition.x , worldPosition.y + 7, worldPosition.z + z }, { BlockType::Leaves });
+		world->SetBlock({ worldPosition.x , worldPosition.y + 6, worldPosition.z + z }, { BlockType::Leaves });
 
-	world->SetBlock({ worldPosition.x + 2, worldPosition.y + 6, worldPosition.z }, { BlockType::Leaves });
-	world->SetBlock({ worldPosition.x - 2, worldPosition.y + 6, worldPosition.z }, { BlockType::Leaves });
-	world->SetBlock({ worldPosition.x, worldPosition.y + 6, worldPosition.z + 2 }, { BlockType::Leaves });
-	world->SetBlock({ worldPosition.x, worldPosition.y + 6, worldPosition.z - 2 }, { BlockType::Leaves });
+	for (int8_t i = 1; i < 5; ++i)
+		world->SetBlock({ worldPosition.x, worldPosition.y + i, worldPosition.z }, { BlockType::Log });
+
+	world->SetBlock({ worldPosition.x + 2, worldPosition.y + 5, worldPosition.z }, { BlockType::Leaves });
+	world->SetBlock({ worldPosition.x - 2, worldPosition.y + 5, worldPosition.z }, { BlockType::Leaves });
+	world->SetBlock({ worldPosition.x, worldPosition.y + 5, worldPosition.z + 2 }, { BlockType::Leaves });
+	world->SetBlock({ worldPosition.x, worldPosition.y + 5, worldPosition.z - 2 }, { BlockType::Leaves });
 }
 
 void Chunk::GenerateMesh(const World* world, const glm::ivec2& chunkPosition) noexcept

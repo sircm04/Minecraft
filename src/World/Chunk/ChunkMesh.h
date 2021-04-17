@@ -105,7 +105,7 @@ private:
 	bool DoesBlockExist(const World* world, glm::vec3 position) noexcept;
 
 public:
-	static const VertexBufferLayout* getLayoutInstance() {
+	static const VertexBufferLayout* GetLayoutInstance() {
 		static VertexBufferLayout* layoutInstance;
 		if (!layoutInstance)
 		{

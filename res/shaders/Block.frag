@@ -16,13 +16,13 @@ uniform sampler2DArray image;
 uniform vec3 playerPosition;
 uniform vec2 fogDist;
 uniform vec3 fogColor;
+//uniform vec3 sunDir;
 
 void main()
 {
-//  const vec3 sunDir = normalize(vec3(1, 3, 2));
-//	const float ambient = 0.4;
-//	
-//	float diffuse = max(dot(s_Normal, sunDir), 0.0);
+	//const float ambient = 0.4;
+	
+	//float diffuse = max(dot(s_Normal, sunDir), 0.5);
 	color = /*vec4(vec3(ambient + diffuse), 1.0) * */texture(image, s_TexCoord);
     float fogFactor = clamp((fogDist.y - distance(playerPosition, s_Position)) / (fogDist.y - fogDist.x), 0.0, 1.0);
 
