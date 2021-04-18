@@ -9,7 +9,7 @@ class Player;
 class World
 {
 public:
-	static constexpr uint16_t WORLD_RADIUS = 10, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
+	static constexpr uint16_t WORLD_RADIUS = 5, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
 		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
 
 private:
