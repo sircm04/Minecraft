@@ -9,7 +9,7 @@ class Player;
 class World
 {
 public:
-	static constexpr uint16_t WORLD_RADIUS = 5, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
+	static constexpr uint16_t WORLD_RADIUS = 10, WORLD_OUTER_RADIUS = WORLD_RADIUS + 1,
 		REAL_WORLD_RADIUS = WORLD_RADIUS * 16;
 
 private:
@@ -19,6 +19,10 @@ private:
 	std::mt19937 m_NoiseRandom;
 
 	mutable std::mutex m_MainMutexLock, m_MutexLock, m_JobsMutex;
+	std::queue<std::function<void()>> m_Jobs;
+	std::vector<std::thread> m_Threads;
+	std::condition_variable_any m_Condition;
+	bool m_TerminatePool;
 
 public:
 	bool m_FirstLoad = true;

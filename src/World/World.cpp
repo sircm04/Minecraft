@@ -5,36 +5,37 @@
 #include "../Entity/Mob/Cow.h"
 #include "../Utils/Timer.h"
 
-struct Job
-{
-	std::function<void(const glm::ivec2&)> job;
-	const glm::ivec2& chunkPosition;
-};
-
-std::vector<Job> m_Jobs;
-std::vector<std::thread> m_Threads;
-
 World::World() noexcept
 {
 	std::random_device rand;
 	m_NoiseRandom = std::mt19937(rand());
 	m_Noise = siv::PerlinNoise(m_NoiseRandom);
 
-	for (int i = 0; i < 32; ++i)
+	m_TerminatePool = false;
+
+	for (int i = 0; i < std::thread::hardware_concurrency(); ++i)
 	{
-		m_Threads.push_back(std::thread([&]()
+		m_Threads.emplace_back(std::thread([&]()
 		{
 			while (true)
 			{
-				std::unique_lock lock(m_JobsMutex);
+				std::function<void()> job;
 
-				if (!m_Jobs.empty()) {
-					auto job = m_Jobs.back();
-					m_Jobs.pop_back();
-					std::cout << job.chunkPosition.x << ", " << job.chunkPosition.y << std::endl;
-					lock.unlock();
-					job.job(job.chunkPosition);
+				{
+					std::unique_lock lock(m_JobsMutex);
+
+					m_Condition.wait(lock, [&] {
+						return (!m_Jobs.empty() || m_TerminatePool);
+					});
+
+					if (m_TerminatePool)
+						break;
+
+					job = std::move(m_Jobs.front());
+					m_Jobs.pop();
 				}
+
+				job();
 			}
 		}));
 	}
@@ -42,8 +43,17 @@ World::World() noexcept
 
 World::~World() noexcept
 {
-	for (auto it = m_Threads.begin(); it != m_Threads.end(); ++it)
-		it->join();
+	{
+		std::unique_lock<std::mutex> lock(m_JobsMutex);
+		m_TerminatePool = true;
+	}
+
+	m_Condition.notify_all();
+
+	for (auto& thread : m_Threads)
+		thread.join();
+
+	m_Threads.clear();
 }
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
@@ -97,10 +107,9 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		if (ceil(glm::distance2(static_cast<glm::vec2>(it->first), static_cast<glm::vec2>(playerChunkPosition))) >= worldOuterRadius2)
 			it->second.SetRemoved();
 
-	auto loop = [&](unsigned int radius, unsigned int radius2, auto&& code)
+	auto loop = [&](const std::string& action, unsigned int radius, unsigned int radius2, auto&& code)
 	{
-		Timer timer("World::UpdateChunks subloop");
-		std::vector<std::future<void>> futures;
+		Timer timer(action.c_str());
 
 		int xPositiveDistance = radius + playerChunkPosition.x,
 			zPositiveDistance = radius + playerChunkPosition.y,
@@ -115,20 +124,26 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 
 				if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
 				{
-					std::scoped_lock lk(m_JobsMutex);
+					{
+						std::unique_lock lk(m_JobsMutex);
+						m_Jobs.emplace(std::move([&]() { code(chunkPosition); }));
+					}
 
-					m_Jobs.push_back({ code, chunkPosition });
+					m_Condition.notify_one();
 				}
 			}
 		}
 
-		while (true) {
-			std::scoped_lock lk(m_JobsMutex);
-			if (m_Jobs.empty()) break;
+		while (true)
+		{
+			std::unique_lock lk(m_JobsMutex);
+
+			if (m_Jobs.empty())
+				break;
 		}
 	};
 
-	loop(WORLD_OUTER_RADIUS, worldOuterRadius2, [&](const glm::ivec2& chunkPosition)
+	loop("Generation", WORLD_OUTER_RADIUS, worldOuterRadius2, [&](const glm::ivec2& chunkPosition)
 	{
 		if (!GetChunk(chunkPosition))
 		{
@@ -138,7 +153,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		}
 	});
 
-	loop(WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
+	loop("Tree Generation", WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
 	{
 		Chunk* chunk = GetChunk(chunkPosition);
 
@@ -161,7 +176,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		AddEntity<Cow>(this, player->m_Position);
 	}
 
-	loop(WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
+	loop("Meshing", WORLD_RADIUS, worldRadius2, [&](const glm::ivec2& chunkPosition)
 	{
 		Chunk* chunk = GetChunk(chunkPosition);
 		
@@ -274,7 +289,7 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 {
 	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
-	for (auto element : neighboringChunks)
+	for (auto& element : neighboringChunks)
 		if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
 			element.first->GenerateMesh(this, element.second);
 }
@@ -282,7 +297,7 @@ void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
 void World::RefreshNeighboringChunks(const glm::ivec2& position) noexcept
 {
 	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
-	for (auto element : neighboringChunks)
+	for (auto& element : neighboringChunks)
 		if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
 			element.first->GenerateMesh(this, element.second);
 }
