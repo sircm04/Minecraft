@@ -31,7 +31,7 @@ private:
 public:
 	ChunkMesh m_ChunkMesh;
 
-	Chunk() noexcept;
+	Chunk() noexcept = default;
 	~Chunk() = default;
 	Chunk(Chunk&&) noexcept = default;
 	Chunk(const Chunk&) = delete;

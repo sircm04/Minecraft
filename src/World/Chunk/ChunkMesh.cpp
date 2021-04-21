@@ -4,10 +4,6 @@
 #include "../World.h"
 #include "Chunk.h"
 
-ChunkMesh::ChunkMesh() noexcept
-{
-}
-
 void ChunkMesh::Bind() const noexcept
 {
 	m_Mesh->Bind();
@@ -92,6 +88,8 @@ bool ChunkMesh::DoesBlockExist(const World* world, glm::vec3 position) noexcept
 
 void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, const std::array<float, 60>& vertices, float face) noexcept
 {
+	static std::mutex m_Mutex;
+
 	for (uint8_t i = 0, index = 0; i < 4; ++i)
 	{
 		glm::vec3 normal = {
@@ -116,7 +114,8 @@ void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, cons
 			DoesBlockExist(world, position + normal + perpendicularNormal2),
 			DoesBlockExist(world, position + normal + perpendicularNormal1 + perpendicularNormal2)));
 
-		std::array temp = {
+		m_Vertices.insert(m_Vertices.end(),
+		{
 			vertices[index++] + position.x,
 			vertices[index++] + position.y,
 			vertices[index++] + position.z,
@@ -127,19 +126,17 @@ void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, cons
 			normal.y,
 			normal.z,
 			ao
-		};
+		});
 
 		index += 9;
-
-		m_Vertices.insert(m_Vertices.end(), temp.begin(), temp.end());
 	}
 
-	std::array temp = {
+	m_Indices.insert(m_Indices.end(),
+	{
 		m_IndicesIndex, m_IndicesIndex + 1, m_IndicesIndex + 2,
 		m_IndicesIndex + 2, m_IndicesIndex + 3, m_IndicesIndex
-	};
+	});
 
-	m_Indices.insert(m_Indices.end(), temp.begin(), temp.end());
 	m_IndicesIndex += 4;
 }
 

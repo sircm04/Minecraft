@@ -31,7 +31,7 @@ World::World() noexcept
 					if (m_TerminatePool)
 						break;
 
-					job = m_Jobs.front();
+					job = std::move(m_Jobs.front());
 					m_Jobs.pop();
 				}
 
@@ -77,6 +77,7 @@ void World::RenderChunks(const ViewFrustum& frustum)
 	{
 		if (*it->second.GetChunkState() == ChunkState::Removed)
 		{
+			std::lock_guard lock(m_MutexLock);
 			it = m_Chunks.erase(it);
 			continue;
 		}
@@ -126,8 +127,9 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 				if (ceil(glm::distance2(static_cast<glm::vec2>(chunkPosition), static_cast<glm::vec2>(playerChunkPosition))) < radius2)
 				{
 					{
-						std::unique_lock lock(m_MutexLock);
-						m_Jobs.emplace([code, chunkPosition]() { code(chunkPosition); });
+						std::unique_lock lock(m_JobsMutex);
+
+						m_Jobs.push([code, chunkPosition]() { code(chunkPosition); });
 					}
 
 					m_Condition.notify_one();
@@ -135,13 +137,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 			}
 		}
 
-		while (true)
-		{
-			std::unique_lock lock(m_MutexLock);
-
-			if (m_Jobs.empty())
-				break;
-		}
+		// TODO: Wait until all current jobs are finished to continue...
 	};
 
 	loop("Generation", WORLD_OUTER_RADIUS, worldOuterRadius2, [&](const glm::ivec2& chunkPosition)
@@ -161,7 +157,7 @@ void World::UpdateChunks(Player* player, const glm::ivec2& playerChunkPosition)
 		if (chunk && *chunk->GetChunkState() == ChunkState::Generated)
 		{
 			chunk->GenerateTrees(this, chunkPosition);
-			RefreshNeighboringChunks(chunkPosition);
+			//RefreshNeighboringChunks(chunkPosition);
 		}
 	});
 
@@ -228,6 +224,7 @@ Chunk* World::GetChunk(const glm::ivec2& position) noexcept
 
 const Chunk* World::GetChunk(const glm::ivec2& position) const noexcept
 {
+	std::lock_guard lock(m_MutexLock);
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }

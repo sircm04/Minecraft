@@ -120,7 +120,7 @@ public:
 
 	ChunkMeshState m_ChunkMeshState = ChunkMeshState::Ungenerated;
 
-	ChunkMesh() noexcept;
+	ChunkMesh() noexcept = default;
 	
 	void Bind() const noexcept;
 	void Unbind() const noexcept;
