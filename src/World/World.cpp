@@ -6,10 +6,9 @@
 #include "../Utils/Timer.h"
 
 World::World() noexcept
+	: m_NoiseRandom(std::mt19937(std::random_device{}())),
+	m_Noise(siv::PerlinNoise(m_NoiseRandom))
 {
-	std::random_device rand;
-	m_NoiseRandom = std::mt19937(rand());
-	m_Noise = siv::PerlinNoise(m_NoiseRandom);
 }
 
 void World::Update(double deltaTime, Player* player, const glm::vec3& playerPosition)
