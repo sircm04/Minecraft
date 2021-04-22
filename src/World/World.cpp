@@ -196,7 +196,7 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	const glm::ivec2 chunkPosition = GetChunkPositionFromBlock({ position.x, position.z });
 	const glm::ivec3 inChunkPosition = GetBlockPositionInChunk(position);
 
-	auto emplaceChunk = [&](bool boolean, glm::ivec2 chunkPos)
+	auto emplaceChunk = [&](bool boolean, const glm::ivec2 chunkPos)
 	{
 		if (boolean)
 			chunks.emplace(GetChunk(chunkPos), chunkPos);

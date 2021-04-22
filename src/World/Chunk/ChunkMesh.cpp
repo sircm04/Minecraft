@@ -24,11 +24,10 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 	const Chunk* rightChunk = world->GetChunk({ chunkPosition.x + 1, chunkPosition.y });
 
 	const glm::ivec2 realChunkPosition = { chunkPosition.x << 4, chunkPosition.y << 4 };
-	bool xNotFinished;
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
 	{
-		xNotFinished = (x != (Chunk::CHUNK_WIDTH - static_cast<uint8_t>(1)));
+		bool xNotFinished = (x != (Chunk::CHUNK_WIDTH - static_cast<uint8_t>(1)));
 
 		for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
 		{
