@@ -201,8 +201,8 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 
 	emplaceChunk(inChunkPosition.x == 0, { chunkPosition.x - 1, chunkPosition.y });
 	emplaceChunk(inChunkPosition.z == 0, { chunkPosition.x, chunkPosition.y - 1 });
-	emplaceChunk(inChunkPosition.x == Chunk::CHUNK_WIDTH, { chunkPosition.x + 1, chunkPosition.y });
-	emplaceChunk(inChunkPosition.z == Chunk::CHUNK_DEPTH, { chunkPosition.x, chunkPosition.y + 1 });
+	emplaceChunk(inChunkPosition.x == (Chunk::CHUNK_WIDTH - 1), { chunkPosition.x + 1, chunkPosition.y });
+	emplaceChunk(inChunkPosition.z == (Chunk::CHUNK_DEPTH - 1), { chunkPosition.x, chunkPosition.y + 1 });
 
 	return chunks;
 }

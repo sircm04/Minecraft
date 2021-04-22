@@ -126,7 +126,7 @@ public:
 	void Unbind() const noexcept;
 
 	void Generate(const Chunk* chunk, const World* world, const glm::ivec2& chunkPosition) noexcept;
-	void AddBlockFace(const World* world, const glm::vec3& position, const std::array<float, 60>& vertices, float face) noexcept;
+	void AddBlockFace(const World* world, const glm::vec3& position, const std::array<float, 60>& vertices, float face, bool doAO) noexcept;
 	void BufferMesh() noexcept;
 	void ClearMesh() noexcept;
 

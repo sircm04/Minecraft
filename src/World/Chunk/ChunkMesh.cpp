@@ -34,6 +34,7 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 			for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 			{
 				const Block* block = chunk->GetBlock({ x, y, z });
+				const auto& blockData = block->GetBlockTypeData();
 
 				const glm::ivec3 frontBlockPosition = { x, y, z + 1 };
 				const glm::ivec3 rightBlockPosition = { x + 1, y, z };
@@ -44,33 +45,42 @@ void ChunkMesh::Generate(const Chunk* chunk, const World* world, const glm::ivec
 					0, rightBlockPosition.y, rightBlockPosition.z }));
 				const Block* topBlock = chunk->GetBlockInBounds(topBlockPosition);
 
-				if (block->GetBlockTypeData().isSolid)
+				if (blockData.isSolid)
 				{
 					const glm::ivec3& realPosition = glm::ivec3 { x + realChunkPosition.x, y, z + realChunkPosition.y };
 
 					if (frontBlock && frontBlock->GetBlockTypeData().isTransparent)
-						AddBlockFace(world, realPosition, FRONT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().faces.value()[0]);
+						AddBlockFace(world, realPosition, FRONT_BLOCK_FACE_VERTICES, blockData.faces.value()[0], !blockData.isTransparent);
 
 					if (rightBlock && rightBlock->GetBlockTypeData().isTransparent)
-						AddBlockFace(world, realPosition, RIGHT_BLOCK_FACE_VERTICES, block->GetBlockTypeData().faces.value()[2]);
+						AddBlockFace(world, realPosition, RIGHT_BLOCK_FACE_VERTICES, blockData.faces.value()[2], !blockData.isTransparent);
 
 					if (!topBlock || topBlock->GetBlockTypeData().isTransparent)
-						AddBlockFace(world, realPosition, TOP_BLOCK_FACE_VERTICES, block->GetBlockTypeData().faces.value()[4]);
+						AddBlockFace(world, realPosition, TOP_BLOCK_FACE_VERTICES, blockData.faces.value()[4], !blockData.isTransparent);
 				}
 				
-				if (block->GetBlockTypeData().isTransparent)
+				if (blockData.isTransparent)
 				{
 					if (frontBlock && frontBlock->GetBlockTypeData().isSolid)
+					{
+						const auto& frontBlockData = frontBlock->GetBlockTypeData();
 						AddBlockFace(world, { frontBlockPosition.x + realChunkPosition.x, frontBlockPosition.y, frontBlockPosition.z + realChunkPosition.y },
-							BACK_BLOCK_FACE_VERTICES, frontBlock->GetBlockTypeData().faces.value()[1]);
+							BACK_BLOCK_FACE_VERTICES, frontBlockData.faces.value()[1], !frontBlockData.isTransparent);
+					}
 
 					if (rightBlock && rightBlock->GetBlockTypeData().isSolid)
+					{
+						const auto& rightBlockData = rightBlock->GetBlockTypeData();
 						AddBlockFace(world, { rightBlockPosition.x + realChunkPosition.x, rightBlockPosition.y, rightBlockPosition.z + realChunkPosition.y },
-							LEFT_BLOCK_FACE_VERTICES, rightBlock->GetBlockTypeData().faces.value()[3]);
+							LEFT_BLOCK_FACE_VERTICES, rightBlockData.faces.value()[3], !rightBlockData.isTransparent);
+					}
 
 					if (topBlock && topBlock->GetBlockTypeData().isSolid)
+					{
+						const auto& topBlockData = topBlock->GetBlockTypeData();
 						AddBlockFace(world, { topBlockPosition.x + realChunkPosition.x, topBlockPosition.y, topBlockPosition.z + realChunkPosition.y },
-							BOTTOM_BLOCK_FACE_VERTICES, topBlock->GetBlockTypeData().faces.value()[5]);
+							BOTTOM_BLOCK_FACE_VERTICES, topBlockData.faces.value()[5], !topBlockData.isTransparent);
+					}
 				}
 			}
 		}
@@ -85,7 +95,7 @@ bool ChunkMesh::DoesBlockExist(const World* world, glm::vec3 position) noexcept
 	return ((block) ? block->GetBlockTypeData().isSolid : false);
 }
 
-void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, const std::array<float, 60>& vertices, float face) noexcept
+void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, const std::array<float, 60>& vertices, float face, bool doAO) noexcept
 {
 	static std::mutex m_Mutex;
 
@@ -109,9 +119,20 @@ void ChunkMesh::AddBlockFace(const World* world, const glm::vec3& position, cons
 			vertices[index + 14]
 		};
 
-		float ao = static_cast<float>(CalculateVertexAO(DoesBlockExist(world, position + normal + perpendicularNormal1),
-			DoesBlockExist(world, position + normal + perpendicularNormal2),
-			DoesBlockExist(world, position + normal + perpendicularNormal1 + perpendicularNormal2)));
+		float ao = 3;
+
+		if (doAO)
+		{
+			const Block* side1 = world->GetBlock(position + normal + perpendicularNormal1);
+			const Block* side2 = world->GetBlock(position + normal + perpendicularNormal2);
+			const Block* corner = world->GetBlock(position + normal + perpendicularNormal1 + perpendicularNormal2);
+
+			bool side1Bool = side1 && side1->GetBlockTypeData().isSolid && !side1->GetBlockTypeData().isTransparent;
+			bool side2Bool = side2 && side2->GetBlockTypeData().isSolid && !side2->GetBlockTypeData().isTransparent;
+			bool cornerBool = corner && corner->GetBlockTypeData().isSolid && !corner->GetBlockTypeData().isTransparent;
+
+			ao = static_cast<float>(CalculateVertexAO(side1Bool, side2Bool, cornerBool));
+		}
 
 		m_Vertices.insert(m_Vertices.end(),
 		{
