@@ -25,12 +25,12 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width,
 		(GLsizei) filePaths.size()
 	);
 
-	unsigned char* image;
 	int w, h, BPP;
-	for (int i = 0; i < filePaths.size(); ++i) {
+	for (int i = 0; i < filePaths.size(); ++i)
+	{
 		std::string filePath = filePaths[i];
 
-		image = stbi_load(filePath.c_str(), &w, &h, &BPP, 4);
+		unsigned char* image = stbi_load(filePath.c_str(), &w, &h, &BPP, 4);
 
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,

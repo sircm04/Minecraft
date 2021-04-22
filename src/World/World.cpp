@@ -194,26 +194,19 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	std::unordered_map<Chunk*, glm::ivec2> chunks;
 
 	const glm::ivec2 chunkPosition = GetChunkPositionFromBlock({ position.x, position.z });
-	const glm::uvec3 inChunkPosition = GetBlockPositionInChunk(position);
+	const glm::ivec3 inChunkPosition = GetBlockPositionInChunk(position);
 
-	bool xAtMin = (inChunkPosition.x) == 0, xAtMax = (Chunk::CHUNK_WIDTH - 1),
-		zAtMin = (inChunkPosition.z) == 0, zAtMax = (Chunk::CHUNK_DEPTH - 1);
-
-	constexpr glm::ivec3 offsets[] = {
-		{-1,  0, 0b01 }, { 0, -1, 0b10 },
-		{ 1,  0, 0b01 }, { 0,  1, 0b10 },
-		{-1, -1, 0b11 }, { 1,  1, 0b11 },
-		{-1,  1, 0b11 }, { 1, -1, 0b11 }
+	auto emplaceChunk = [&](bool boolean, glm::ivec2 chunkPos)
+	{
+		if (boolean)
+			chunks.emplace(GetChunk(chunkPos), chunkPos);
 	};
 
-	for (auto offset : offsets)
-	{
-		auto target = chunkPosition + glm::ivec2 { offset };
+	emplaceChunk(inChunkPosition.x == 0, { chunkPosition.x - 1, chunkPosition.y });
+	emplaceChunk(inChunkPosition.z == 0, { chunkPosition.x, chunkPosition.y - 1 });
+	emplaceChunk(inChunkPosition.x == Chunk::CHUNK_WIDTH, { chunkPosition.x + 1, chunkPosition.y });
+	emplaceChunk(inChunkPosition.z == Chunk::CHUNK_DEPTH, { chunkPosition.x, chunkPosition.y + 1 });
 
-		if ((!(offset.z & 1) || xAtMax) && (!(offset.z & 2) || zAtMax))
-			chunks.emplace(GetChunk(target), target);
-	}
-	
 	return chunks;
 }
 
@@ -222,16 +215,15 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	std::unordered_map<Chunk*, glm::ivec2> chunks;
 
 	constexpr glm::ivec2 offsets[] = {
-		{ -1,  0 }, { 0, -1 },
-		{  1,  0 }, { 0,  1 },
-		{ -1, -1 }, { 1,  1 },
-		{ -1,  1 }, { 1, -1 }
+		{ -1, 0 },
+		{ 1, 0 },
+		{ 0, -1 },
+		{ 0, 1 }
 	};
 
 	for (auto offset : offsets)
 	{
 		auto target = position + offset;
-
 		chunks.emplace(GetChunk(target), target);
 	}
 
