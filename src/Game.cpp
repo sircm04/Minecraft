@@ -4,7 +4,7 @@
 #include "Assets.h"
 #include "Renderer/TextRenderer.h"
 
-const std::string Game::VERSION = "0.1.4";
+const std::string Game::VERSION = "0.1.3";
 
 Game::~Game()
 {
