@@ -230,22 +230,6 @@ std::unordered_map<Chunk*, glm::ivec2> World::GetNeighboringChunks(const glm::iv
 	return chunks;
 }
 
-void World::RefreshNeighboringChunks(const glm::ivec3& position) noexcept
-{
-	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
-	for (auto element : neighboringChunks)
-		if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-			element.first->GenerateMesh(this, element.second);
-}
-
-void World::RefreshNeighboringChunks(const glm::ivec2& position) noexcept
-{
-	std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
-	for (auto element : neighboringChunks)
-		if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
-			element.first->GenerateMesh(this, element.second);
-}
-
 void World::SetBlock(const glm::ivec3& position, const Block& block) noexcept
 {
 	Chunk* chunk = GetChunk(GetChunkPositionFromBlock({ position.x, position.z }));

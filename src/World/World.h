@@ -45,8 +45,15 @@ public:
 	
 	std::unordered_map<Chunk*, glm::ivec2> GetNeighboringChunks(const glm::ivec3& position) noexcept;
 	std::unordered_map<Chunk*, glm::ivec2> GetNeighboringChunks(const glm::ivec2& position) noexcept;
-	void RefreshNeighboringChunks(const glm::ivec3& position) noexcept;
-	void RefreshNeighboringChunks(const glm::ivec2& position) noexcept;
+
+	template <size_t N, typename T>
+	void RefreshNeighboringChunks(glm::vec<N, T> position) noexcept
+	{
+		std::unordered_map<Chunk*, glm::ivec2> neighboringChunks = GetNeighboringChunks(position);
+		for (auto element : neighboringChunks)
+			if (element.first && element.first->m_ChunkMesh.m_ChunkMeshState == ChunkMeshState::Complete)
+				element.first->GenerateMesh(this, element.second);
+	}
 
 	void SetBlock(const glm::ivec3& position, const Block& block) noexcept;
 	Block* GetBlock(const glm::ivec3& position) noexcept;
