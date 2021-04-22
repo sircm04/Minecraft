@@ -170,14 +170,12 @@ void World::SetChunk(const glm::ivec2& position, Chunk&& chunk) noexcept
 
 Chunk* World::GetChunk(const glm::ivec2& position) noexcept
 {
-	std::lock_guard lock(m_Mutex);
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
 
 const Chunk* World::GetChunk(const glm::ivec2& position) const noexcept
 {
-	std::lock_guard lock(m_Mutex);
 	const auto& found = m_Chunks.find(position);
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
 }
