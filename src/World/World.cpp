@@ -18,13 +18,13 @@ void World::Update(const ChunkLocation& playerChunkLocation)
 
 void World::UpdateChunks(const ChunkLocation& playerChunkLocation)
 {
-	auto loop = [&](int radius, auto code)
+	auto loop = [&](unsigned int radius, auto code)
 	{
 		std::vector<std::future<void>> futures;
 
-		for (int x = (playerChunkLocation.x - radius); x < (playerChunkLocation.x + radius); ++x)
+		for (int x = static_cast<signed>(playerChunkLocation.x - radius); x < static_cast<signed>(playerChunkLocation.x + radius); ++x)
 		{
-			for (int z = (playerChunkLocation.y - radius); z < (playerChunkLocation.y + radius); ++z)
+			for (int z = static_cast<signed>(playerChunkLocation.y - radius); z < static_cast<signed>(playerChunkLocation.y + radius); ++z)
 			{
 				const ChunkLocation chunkLocation = { x, z };
 

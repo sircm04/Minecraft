@@ -13,7 +13,7 @@ private:
 	std::mutex m_Mutex;
 
 public:
-	static inline uint8_t RENDER_DISTANCE = 24;
+	static inline unsigned int RENDER_DISTANCE = 24;
 
 	void Update(const ChunkLocation& playerChunkLocation);
 	void UpdateChunks(const ChunkLocation& playerChunkLocation);
