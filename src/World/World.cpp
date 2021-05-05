@@ -63,7 +63,7 @@ void World::UpdateChunks(const ChunkLocation& playerChunkLocation)
 
 void World::RenderChunks(VertexArray& vertexArray)
 {
-	auto& it = m_Chunks.begin();
+	auto it = m_Chunks.begin();
 	while (it != m_Chunks.end())
 	{
 		switch (it->second.m_ChunkState)

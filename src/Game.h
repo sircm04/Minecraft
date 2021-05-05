@@ -18,6 +18,8 @@ private:
 	Camera m_Camera;
 
 public:
+	~Game();
+
 	void Run();
 
 	void Initialize();

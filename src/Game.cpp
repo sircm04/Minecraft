@@ -13,11 +13,15 @@ MessageCallback(GLenum source,
     const GLchar* message,
     const void* userParam);
 
+Game::~Game()
+{
+    Cleanup();
+}
+
 void Game::Run()
 {
     Initialize();
     MainLoop();
-    Cleanup();
 }
 
 void Game::Initialize()
@@ -33,13 +37,13 @@ void Game::Initialize()
     if (!m_Window)
     {
         glfwTerminate();
-        throw std::exception("failed to create window!");
+        throw std::runtime_error("failed to create window!");
     }
 
     glfwMakeContextCurrent(m_Window);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
-        throw std::exception("glad failed to initialize!");
+        throw std::runtime_error("glad failed to initialize!");
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);

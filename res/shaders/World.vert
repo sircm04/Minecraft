@@ -3,12 +3,12 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_TexCoord;
 layout(location = 2) in vec3 a_Normal;
-layout(location = 3) in unsigned int a_AO;
+layout(location = 3) in uint a_AO;
 
 out vec3 s_Position;
 out vec3 s_TexCoord;
 out vec3 s_Normal;
-out unsigned int s_AO;
+flat out unsigned int s_AO;
 
 uniform mat4 projection, view;
 
