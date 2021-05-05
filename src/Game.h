@@ -1,6 +1,8 @@
 #pragma once
 
 #include "World/World.h"
+#include "Camera.h"
+#include "Renderer/Shader.h"
 
 class Game
 {
@@ -11,6 +13,9 @@ private:
 	World m_World;
 
 	std::thread m_Thread;
+	std::unique_ptr<VertexArray> m_WorldVertexArray;
+	std::unique_ptr<Shader> m_WorldShader;
+	Camera m_Camera;
 
 public:
 	void Run();

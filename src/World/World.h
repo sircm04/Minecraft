@@ -18,6 +18,8 @@ public:
 	void Update(const ChunkLocation& playerChunkLocation);
 	void UpdateChunks(const ChunkLocation& playerChunkLocation);
 
+	void RenderChunks(VertexArray& vertexArray);
+
 	void SetBlock(const WorldPosition& position, const Block& block);
 	Block* GetBlock(const WorldPosition& position);
 	const Block* GetBlock(const WorldPosition& position) const;

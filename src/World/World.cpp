@@ -10,7 +10,7 @@ void World::Update(const ChunkLocation& playerChunkLocation)
 		UpdateChunks(playerChunkLocation);
 
 		const Block* block = GetBlock({ 8, 0, 8 });
-		std::cout << (unsigned) block->type << std::endl;
+		std::cout << static_cast<unsigned>(block->type) << std::endl;
 
 		prevPlayerChunkLocation = playerChunkLocation;
 	}
@@ -59,6 +59,27 @@ void World::UpdateChunks(const ChunkLocation& playerChunkLocation)
 		if (chunk)
 			chunk->GenerateMesh(chunkLocation);
 	});
+}
+
+void World::RenderChunks(VertexArray& vertexArray)
+{
+	auto& it = m_Chunks.begin();
+	while (it != m_Chunks.end())
+	{
+		switch (it->second.m_ChunkState)
+		{
+		case ChunkState::Removed:
+			m_Chunks.erase(it);
+			continue;
+		case ChunkState::Generated:
+			it->second.BufferMesh(vertexArray);
+			it->second.m_ChunkState = ChunkState::Buffered;
+		case ChunkState::Buffered:
+			it->second.Render();
+		}
+
+		++it;
+	}
 }
 
 void World::SetBlock(const WorldPosition& position, const Block& block)
