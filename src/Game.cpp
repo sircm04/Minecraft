@@ -92,11 +92,11 @@ void Game::Initialize()
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
     glfwSetWindowPos(m_Window, (mode->width - WINDOW_WIDTH) * 0.5f, (mode->height - WINDOW_HEIGHT) * 0.5f);
 
-    auto layout = VertexBufferLayout();
+    VertexBufferLayout layout;
     layout.Push<float>(3);
     layout.Push<float>(3);
     layout.Push<float>(3);
-    layout.Push<float>(1);
+    layout.Push<unsigned int>(1);
 
     m_WorldVertexArray = std::make_unique<VertexArray>(layout);
 
@@ -113,7 +113,7 @@ void Game::Initialize()
 
     glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
-    m_Camera.position = { 8, 52, 8 };
+    m_Camera.position = { 8, 0, 8 };
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -144,6 +144,24 @@ void Game::Cleanup()
 void Game::Update()
 {
     glfwPollEvents();
+
+    static constexpr float speed = 0.05f;
+
+    if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
+        m_Camera.position += speed * m_Camera.front;
+    if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
+        m_Camera.position -= speed * m_Camera.front;
+    if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
+        m_Camera.position -= glm::normalize(glm::cross(m_Camera.front, m_Camera.up)) * speed;
+    if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
+        m_Camera.position += glm::normalize(glm::cross(m_Camera.front, m_Camera.up)) * speed;
+    if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        m_Camera.position += speed * m_Camera.up;
+    if (glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        m_Camera.position -= speed * m_Camera.up;
+
+    //std::cout << "POSITION: " << m_Camera.position.x << ", " << m_Camera.position.y << ", " << m_Camera.position.z << std::endl;
+    //std::cout << "DIRECTION: " << m_Camera.front.x << ", " << m_Camera.front.y << ", " << m_Camera.front.z << std::endl;
 }
 
 void Game::Render()

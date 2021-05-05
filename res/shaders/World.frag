@@ -5,6 +5,7 @@ layout(location = 0) out vec4 color;
 in vec3 s_Position;
 in vec3 s_TexCoord;
 in vec3 s_Normal;
+in unsigned int s_AO;
 
 void main()
 {

@@ -5,7 +5,7 @@ void Chunk::Generate()
 {
 	m_ChunkState = ChunkState::Ungenerated;
 
-	m_Model = std::make_unique<Model<>>();
+	m_Model = std::make_unique<Model<Vertex>>();
 
 	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
 
@@ -37,26 +37,35 @@ void Chunk::GenerateMesh(const ChunkLocation& chunkLocation)
 				WorldPosition position = { x + chunkLocation.x * Chunk::CHUNK_WIDTH, y, z + chunkLocation.y * Chunk::CHUNK_DEPTH };
 
 				if (y == 50)
-					AddFaceToMesh(TOP_BLOCK_FACE_VERTICES, position, 0);
+					AddFaceToMesh(TOP_BLOCK_FACE, position, 0);
 			}
 		}
 	}
 }
 
-void Chunk::AddFaceToMesh(const BlockFace& blockFace, const WorldPosition& position, float face)
+void Chunk::AddFaceToMesh(const BlockFace& face, const WorldPosition& position, float texture)
 {
-	m_Model->AddMesh({
+	std::vector<Vertex> vertices;
+
+	for (uint8_t i = 0; i < 4; ++i)
+	{
+		auto& vertex = face.vertices[i];
+
+		vertices.emplace_back(Vertex
 		{
-			blockFace[0] + position.x,
-			blockFace[1] + position.y,
-			blockFace[2] + position.z,
-			blockFace[3],
-			blockFace[4],
-			blockFace[5] + face,
-			blockFace[6],
-			blockFace[7],
-			blockFace[8]
-		},
+			vertex.position + position,
+			{
+				vertex.texcoords.x,
+				vertex.texcoords.y,
+				vertex.texcoords.z + texture
+			},
+			vertex.normal,
+			0
+		});
+	}
+
+	m_Model->AddMesh({
+		vertices,
 		{
 			0, 1, 2, 2, 3, 0
 		}
