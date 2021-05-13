@@ -1,39 +1,53 @@
 #include "../pch.h"
 #include "World.h"
 
-void World::Update(const ChunkLocation& playerChunkLocation)
+World::World()
+	: m_NoiseRandom(std::mt19937(std::random_device{}())),
+	m_Noise(siv::PerlinNoise(m_NoiseRandom))
 {
-	static std::optional<ChunkLocation> prevPlayerChunkLocation = std::nullopt;
+}
 
-	if (playerChunkLocation != prevPlayerChunkLocation)
+void World::Update(const WorldPosition2D& playerPosition)
+{
+	static std::optional<WorldPosition2D> prevPlayerPosition = std::nullopt;
+
+	if (playerPosition != prevPlayerPosition)
 	{
-		UpdateChunks(playerChunkLocation);
-
-		const Block* block = GetBlock({ 8, 0, 8 });
-		std::cout << static_cast<unsigned>(block->type) << std::endl;
-
-		prevPlayerChunkLocation = playerChunkLocation;
+		UpdateChunks(playerPosition);
+		prevPlayerPosition = playerPosition;
 	}
 }
 
-void World::UpdateChunks(const ChunkLocation& playerChunkLocation)
+void World::UpdateChunks(const WorldPosition2D& playerPosition)
 {
+	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); ++it)
+		if (glm::distance2(static_cast<glm::vec2>((it->first << 4) + 8), playerPosition) >= ((World::RENDER_DISTANCE + 1) << 4) * ((World::RENDER_DISTANCE + 1) << 4))
+			it->second.m_ChunkState = ChunkState::Removed;
+
+	const ChunkLocation playerChunkLocation = PosUtils::ConvertWorldPosToChunkLoc(playerPosition);
+
 	auto loop = [&](unsigned int radius, auto code)
 	{
 		std::vector<std::future<void>> futures;
 
-		for (int x = static_cast<signed>(playerChunkLocation.x - radius); x < static_cast<signed>(playerChunkLocation.x + radius); ++x)
-		{
-			for (int z = static_cast<signed>(playerChunkLocation.y - radius); z < static_cast<signed>(playerChunkLocation.y + radius); ++z)
-			{
-				const ChunkLocation chunkLocation = { x, z };
+		int xPositiveDistance = radius + playerChunkLocation.x,
+			zPositiveDistance = radius + playerChunkLocation.y,
+			xNegativeDistance = -radius + playerChunkLocation.x,
+			zNegativeDistance = -radius + playerChunkLocation.y;
 
-				if (ceil(glm::distance(static_cast<glm::vec2>(chunkLocation), static_cast<glm::vec2>(playerChunkLocation))) < radius)
+		for (int x = xNegativeDistance; x < xPositiveDistance; ++x)
+		{
+			for (int z = zNegativeDistance; z < zPositiveDistance; ++z)
+			{
+				const ChunkLocation chunkLocation = { x, z },
+					realChunkLocation = (chunkLocation << 4) + 8;
+
+				if (glm::distance2(static_cast<glm::vec2>(realChunkLocation), playerPosition) < (radius << 4) * (radius << 4))
 				{
-					futures.emplace_back(m_Pool.Enqueue(std::move([code, chunkLocation]
+					futures.emplace_back(m_Pool.Enqueue([code, chunkLocation]
 					{
 						code(chunkLocation);
-					})));
+					}));
 				}
 			}
 		}
@@ -42,12 +56,12 @@ void World::UpdateChunks(const ChunkLocation& playerChunkLocation)
 			future.wait();
 	};
 
-	loop(World::RENDER_DISTANCE, [&](const ChunkLocation& chunkLocation)
+	loop(World::RENDER_DISTANCE + 1, [&](const ChunkLocation& chunkLocation)
 	{
 		if (m_Chunks.find(chunkLocation) == m_Chunks.end())
 		{
 			Chunk chunk;
-			chunk.Generate();
+			chunk.Generate(m_Noise, chunkLocation);
 			SetChunk(chunkLocation, std::move(chunk));
 		}
 	});
@@ -56,12 +70,12 @@ void World::UpdateChunks(const ChunkLocation& playerChunkLocation)
 	{
 		Chunk* chunk = GetChunk(chunkLocation);
 
-		if (chunk)
-			chunk->GenerateMesh(chunkLocation);
+		if (chunk && chunk->m_ChunkState == ChunkState::Generated)
+			chunk->GenerateMesh(this, chunkLocation);
 	});
 }
 
-void World::RenderChunks(VertexArray& vertexArray)
+void World::RenderChunks()
 {
 	auto it = m_Chunks.begin();
 	while (it != m_Chunks.end())
@@ -69,11 +83,13 @@ void World::RenderChunks(VertexArray& vertexArray)
 		switch (it->second.m_ChunkState)
 		{
 		case ChunkState::Removed:
-			m_Chunks.erase(it);
+			{
+				std::lock_guard lock(m_Mutex);
+				it = m_Chunks.erase(it);
+			}
 			continue;
-		case ChunkState::Generated:
-			it->second.BufferMesh(vertexArray);
-			it->second.m_ChunkState = ChunkState::Buffered;
+		case ChunkState::GeneratedMesh:
+			it->second.BufferMesh();
 		case ChunkState::Buffered:
 			it->second.Render();
 		}

@@ -8,16 +8,13 @@ class VertexArray
 private:
 	unsigned int m_RendererID;
 
-	VertexBufferLayout m_VertexBufferLayout;
-
 public:
-	VertexArray(const VertexBufferLayout& vertexBufferLayout);
+	VertexArray();
 	~VertexArray();
 
-	void AddBuffer(const VertexBuffer& vertexBuffer);
+	void AddBuffer(const VertexBuffer& vertexBuffer, const VertexBufferLayout& vertexBufferLayout);
+	void Render(int mode = GL_TRIANGLES) const;
 
 	void Bind() const;
 	void Unbind() const;
-
-	void ResetVertexAttribIndex();
 };

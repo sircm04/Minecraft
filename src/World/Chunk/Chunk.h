@@ -4,10 +4,13 @@
 #include "../Block/Block.h"
 #include "../../Renderer/Model.h"
 
+class World;
+
 enum class ChunkState : uint8_t
 {
 	Ungenerated,
 	Generated,
+	GeneratedMesh,
 	Buffered,
 	Removed
 };
@@ -33,11 +36,13 @@ private:
 	std::unique_ptr<Model<Vertex>> m_Model;
 
 public:
-	void Generate();
+	Chunk();
 
-	void GenerateMesh(const ChunkLocation& chunkLocation);
+	void Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLocation);
+
+	void GenerateMesh(World* world, const ChunkLocation& chunkLocation);
 	void AddFaceToMesh(const BlockFace& face, const WorldPosition& position, float texture);
-	void BufferMesh(VertexArray& vertexArray);
+	void BufferMesh();
 
 	void Render();
 
@@ -49,4 +54,11 @@ public:
 	std::optional<uint8_t> GetHighestBlockYPos(uint8_t x, uint8_t z) const;
 
 	uint16_t PositionToIndex(const ChunkPosition& position) const;
+
+	static constexpr bool IsInBounds(const glm::uvec3& position)
+	{
+		return (position.x >= 0 && position.x < Chunk::CHUNK_WIDTH
+			&& position.y >= 0 && position.y < Chunk::CHUNK_HEIGHT
+			&& position.z >= 0 && position.z < Chunk::CHUNK_DEPTH);
+	}
 };

@@ -33,6 +33,8 @@ void Game::Initialize()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwWindowHint(GLFW_SAMPLES, 16);
+
     m_Window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Minecraft", nullptr, nullptr);
     if (!m_Window)
     {
@@ -51,9 +53,6 @@ void Game::Initialize()
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-	if (glfwRawMouseMotionSupported())
-		glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
 	glfwSetWindowUserPointer(m_Window, this);
 
@@ -96,18 +95,17 @@ void Game::Initialize()
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
     glfwSetWindowPos(m_Window, (mode->width - WINDOW_WIDTH) * 0.5f, (mode->height - WINDOW_HEIGHT) * 0.5f);
 
-    VertexBufferLayout layout;
-    layout.Push<float>(3);
-    layout.Push<float>(3);
-    layout.Push<float>(3);
-    layout.Push<unsigned int>(1);
-
-    m_WorldVertexArray = std::make_unique<VertexArray>(layout);
-
     m_WorldShader = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
         { GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/World.vert") },
         { GL_FRAGMENT_SHADER, Utils::ReadFile("res/shaders/World.frag") }
     });
+
+    m_WorldTexture = std::make_unique<ArrayTexture>(std::vector<std::string>
+    {
+        "res/images/grass_side.png",
+        "res/images/grass_top.png",
+        "res/images/dirt.png"
+    }, 16, 16);
 
     constexpr glm::vec3 skyColor = {
         0.49f,
@@ -117,21 +115,49 @@ void Game::Initialize()
 
     glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
-    m_Camera.position = { 8, 0, 8 };
+    m_Camera.position = { 8, 52, 8 };
 
+    glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CW);
 }
 
 void Game::MainLoop()
 {
     m_Thread = std::thread([&]()
     {
-        m_World.Update(ChunkLocation { 0, 0 });
+        while (!glfwWindowShouldClose(m_Window))
+        {
+            m_World.Update({ m_Camera.position.x, m_Camera.position.z });
+        }
     });
 
     while (!glfwWindowShouldClose(m_Window))
     {
-        Update();
+        static double deltaTime, lastTime, fpsTimeAccumulator, fps;
+        static int nbFrames;
+
+        double currentTime = glfwGetTime();
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        fpsTimeAccumulator += deltaTime;
+        nbFrames++;
+        if (fpsTimeAccumulator >= 1.0) {
+            fps = (double) nbFrames / fpsTimeAccumulator;
+
+            std::stringstream ss;
+            ss << "Minecraft [" << fps << " FPS]";
+
+            glfwSetWindowTitle(m_Window, ss.str().c_str());
+
+            nbFrames = 0;
+            fpsTimeAccumulator = 0;
+        }
+
+        Update(deltaTime);
         Render();
     }
 }
@@ -145,20 +171,21 @@ void Game::Cleanup()
     glfwTerminate();
 }
 
-void Game::Update()
+void Game::Update(float deltaTime)
 {
     glfwPollEvents();
 
-    static constexpr float speed = 0.05f;
+    auto front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z });
+    static const float speed = 2.0f * deltaTime;
 
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-        m_Camera.position += speed * m_Camera.front;
+        m_Camera.position += speed * front;
     if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
-        m_Camera.position -= speed * m_Camera.front;
+        m_Camera.position -= speed * front;
     if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-        m_Camera.position -= glm::normalize(glm::cross(m_Camera.front, m_Camera.up)) * speed;
+        m_Camera.position -= glm::normalize(glm::cross(front, m_Camera.up)) * speed;
     if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-        m_Camera.position += glm::normalize(glm::cross(m_Camera.front, m_Camera.up)) * speed;
+        m_Camera.position += glm::normalize(glm::cross(front, m_Camera.up)) * speed;
     if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
         m_Camera.position += speed * m_Camera.up;
     if (glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
@@ -181,11 +208,11 @@ void Game::Render()
     const glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.front, m_Camera.up);
     const glm::mat4 projection = glm::perspective(glm::radians(m_Camera.fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 5000.0f);
 
-    m_WorldVertexArray->Bind();
+    m_WorldTexture->Bind();
     m_WorldShader->Bind();
     m_WorldShader->SetMat4("view", view);
     m_WorldShader->SetMat4("projection", projection);
-    m_World.RenderChunks(*m_WorldVertexArray);
+    m_World.RenderChunks();
 
     glfwSwapBuffers(m_Window);
 }

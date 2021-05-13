@@ -7,7 +7,9 @@ in vec3 s_TexCoord;
 in vec3 s_Normal;
 flat in uint s_AO;
 
+uniform sampler2DArray image;
+
 void main()
 {
-	color = vec4(1.0, 1.0, 1.0, 1.0);
+	color = texture(image, s_TexCoord);
 }

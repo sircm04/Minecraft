@@ -3,6 +3,7 @@
 #include "World/World.h"
 #include "Camera.h"
 #include "Renderer/Shader.h"
+#include "Renderer/ArrayTexture.h"
 
 class Game
 {
@@ -13,8 +14,8 @@ private:
 	World m_World;
 
 	std::thread m_Thread;
-	std::unique_ptr<VertexArray> m_WorldVertexArray;
 	std::unique_ptr<Shader> m_WorldShader;
+	std::unique_ptr<ArrayTexture> m_WorldTexture;
 	Camera m_Camera;
 
 public:
@@ -26,6 +27,6 @@ public:
 	void MainLoop();
 	void Cleanup();
 
-	void Update();
+	void Update(float deltaTime);
 	void Render();
 };

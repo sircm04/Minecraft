@@ -1,12 +1,13 @@
 #pragma once
 
 typedef glm::vec3 WorldPosition;
+typedef glm::vec2 WorldPosition2D;
 typedef glm::ivec3 ChunkPosition;
 typedef glm::ivec2 ChunkLocation;
 
 namespace PosUtils
 {
-	static ChunkLocation ConvertWorldPosToChunkLoc(WorldPosition position)
+	static ChunkLocation ConvertWorldPosToChunkLoc(const WorldPosition& position)
 	{
 		return {
 			(static_cast<int>(position.x) >> 4),
@@ -14,7 +15,15 @@ namespace PosUtils
 		};
 	}
 
-	static ChunkPosition ConvertWorldPosToChunkPos(WorldPosition position)
+	static ChunkLocation ConvertWorldPosToChunkLoc(const WorldPosition2D& position)
+	{
+		return {
+			(static_cast<int>(position.x) >> 4),
+			(static_cast<int>(position.y) >> 4)
+		};
+	}
+
+	static ChunkPosition ConvertWorldPosToChunkPos(const WorldPosition& position)
 	{
 		return {
 			(static_cast<int>(position.x) & 15),

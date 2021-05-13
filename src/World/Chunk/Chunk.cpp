@@ -1,24 +1,35 @@
 #include "../../pch.h"
 #include "Chunk.h"
 
-void Chunk::Generate()
+#include "../World.h"
+
+Chunk::Chunk()
+	: m_Model(std::make_unique<Model<Vertex>>())
+{
+}
+
+void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLocation)
 {
 	m_ChunkState = ChunkState::Ungenerated;
 
-	m_Model = std::make_unique<Model<Vertex>>();
-
 	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
+
+	const ChunkLocation realChunkLocation = (chunkLocation << 4);
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
 	{
 		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 		{
+			const double random = noise.noise0_1(((realChunkLocation.x + x) * 0.025), ((realChunkLocation.y + z) * 0.025)) * 50;
+			const uint8_t grassHeight = (static_cast<uint8_t>(Chunk::CHUNK_HEIGHT * 0.33f) >> 2) + random,
+				dirtHeight = (grassHeight - 3);
+
 			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
 			{
-				if (y <= 50)
-					SetBlock({ x, y, z }, { BlockType::Grass });
-				else if (y > 50)
+				if (y > grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Air });
+				else if (y <= grassHeight)
+					SetBlock({ x, y, z }, { BlockType::Grass });
 			}
 		}
 	}
@@ -26,55 +37,118 @@ void Chunk::Generate()
 	m_ChunkState = ChunkState::Generated;
 }
 
-void Chunk::GenerateMesh(const ChunkLocation& chunkLocation)
+void Chunk::GenerateMesh(World* world, const ChunkLocation& chunkLocation)
 {
+	m_ChunkState = ChunkState::Generated;
+
+	const ChunkLocation realChunkLocation = chunkLocation << 4;
+
+	const Chunk* frontChunk = world->GetChunk({ chunkLocation.x, chunkLocation.y + 1 });
+	const Chunk* rightChunk = world->GetChunk({ chunkLocation.x + 1, chunkLocation.y });
+
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
 	{
-		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
-		{
-			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
-			{
-				WorldPosition position = { x + chunkLocation.x * Chunk::CHUNK_WIDTH, y, z + chunkLocation.y * Chunk::CHUNK_DEPTH };
+		bool xNotFinished = (x != (Chunk::CHUNK_WIDTH - static_cast<uint8_t>(1)));
 
-				if (y == 50)
-					AddFaceToMesh(TOP_BLOCK_FACE, position, 0);
+		for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
+		{
+			for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
+			{
+				const Block* block = GetBlock({ x, y, z });
+				const auto& blockData = block->GetBlockTypeData();
+
+				const glm::ivec3 frontBlockPosition = { x, y, z + 1 };
+				const glm::ivec3 rightBlockPosition = { x + 1, y, z };
+				const glm::ivec3 topBlockPosition = { x, y + 1, z };
+				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH - static_cast<uint8_t>(1)) ? GetBlock(frontBlockPosition) : frontChunk->GetBlock({
+					frontBlockPosition.x, frontBlockPosition.y, 0 }));
+				const Block* rightBlock = (xNotFinished ? GetBlock(rightBlockPosition) : rightChunk->GetBlock({
+					0, rightBlockPosition.y, rightBlockPosition.z }));
+				const Block* topBlock = GetBlock(topBlockPosition);
+
+				if (blockData.isSolid)
+				{
+					const glm::ivec3& realPosition = glm::ivec3 { x + realChunkLocation.x, y, z + realChunkLocation.y };
+
+					if (frontBlock->GetBlockTypeData().isTransparent)
+						AddFaceToMesh(FRONT_BLOCK_FACE, realPosition, blockData.faces.value()[0]);
+
+ 					if (rightBlock->GetBlockTypeData().isTransparent)
+						AddFaceToMesh(RIGHT_BLOCK_FACE, realPosition, blockData.faces.value()[2]);
+
+					if (!topBlock || topBlock->GetBlockTypeData().isTransparent)
+						AddFaceToMesh(TOP_BLOCK_FACE, realPosition, blockData.faces.value()[4]);
+				}
+
+				if (blockData.isTransparent)
+				{
+					if (frontBlock->GetBlockTypeData().isSolid)
+					{
+						const auto& frontBlockData = frontBlock->GetBlockTypeData();
+						AddFaceToMesh(BACK_BLOCK_FACE, { frontBlockPosition.x + realChunkLocation.x, frontBlockPosition.y, frontBlockPosition.z + realChunkLocation.y },
+							frontBlockData.faces.value()[1]);
+					}
+
+					if (rightBlock->GetBlockTypeData().isSolid)
+					{
+						const auto& rightBlockData = rightBlock->GetBlockTypeData();
+						AddFaceToMesh(LEFT_BLOCK_FACE, { rightBlockPosition.x + realChunkLocation.x, rightBlockPosition.y, rightBlockPosition.z + realChunkLocation.y },
+							rightBlockData.faces.value()[3]);
+					}
+
+					if (topBlock && topBlock->GetBlockTypeData().isSolid)
+					{
+						const auto& topBlockData = topBlock->GetBlockTypeData();
+						AddFaceToMesh(BOTTOM_BLOCK_FACE, { topBlockPosition.x + realChunkLocation.x, topBlockPosition.y, topBlockPosition.z + realChunkLocation.y },
+							topBlockData.faces.value()[5]);
+					}
+				}
 			}
 		}
 	}
+
+	m_ChunkState = ChunkState::GeneratedMesh;
 }
 
 void Chunk::AddFaceToMesh(const BlockFace& face, const WorldPosition& position, float texture)
 {
-	std::vector<Vertex> vertices;
-
+	Mesh<Vertex> mesh;
+	
 	for (uint8_t i = 0; i < 4; ++i)
 	{
 		auto& vertex = face.vertices[i];
 
-		vertices.emplace_back(Vertex
+		mesh.vertices.emplace_back(Vertex
 		{
 			vertex.position + position,
 			{
 				vertex.texcoords.x,
 				vertex.texcoords.y,
-				vertex.texcoords.z + texture
+				texture
 			},
 			vertex.normal,
 			0
 		});
 	}
+	
+	mesh.indices = {
+		0, 1, 2, 2, 3, 0
+	};
 
-	m_Model->AddMesh({
-		vertices,
-		{
-			0, 1, 2, 2, 3, 0
-		}
-	});
+	m_Model->AddMesh(mesh);
 }
 
-void Chunk::BufferMesh(VertexArray& vertexArray)
+void Chunk::BufferMesh()
 {
-	m_Model->Buffer(vertexArray);
+	VertexBufferLayout layout;
+	layout.Push<float>(3);
+	layout.Push<float>(3);
+	layout.Push<float>(3);
+	layout.Push<unsigned int>(1);
+
+	m_Model->Buffer(layout);
+
+	m_ChunkState = ChunkState::Buffered;
 }
 
 void Chunk::Render()
@@ -84,17 +158,24 @@ void Chunk::Render()
 
 void Chunk::SetBlock(const ChunkPosition& position, const Block& block)
 {
-	m_Blocks.at(PositionToIndex(position)) = block;
+	if (IsInBounds(position))
+		m_Blocks[PositionToIndex(position)] = block;
 }
 
 Block* Chunk::GetBlock(const ChunkPosition& position)
 {
-	return &m_Blocks.at(PositionToIndex(position));
+	if (!IsInBounds(position))
+		return nullptr;
+
+	return &m_Blocks[PositionToIndex(position)];
 }
 
 const Block* Chunk::GetBlock(const ChunkPosition& position) const
 {
-	return &m_Blocks.at(PositionToIndex(position));
+	if (!IsInBounds(position))
+		return nullptr;
+
+	return &m_Blocks[PositionToIndex(position)];
 }
 
 Block* Chunk::GetHighestBlock(uint8_t x, uint8_t z)

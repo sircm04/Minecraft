@@ -1,8 +1,7 @@
 #include "../pch.h"
 #include "VertexArray.h"
 
-VertexArray::VertexArray(const VertexBufferLayout& vertexBufferLayout)
-	: m_VertexBufferLayout(vertexBufferLayout)
+VertexArray::VertexArray()
 {
 	glGenVertexArrays(1, &m_RendererID);
 	glBindVertexArray(m_RendererID);
@@ -13,18 +12,18 @@ VertexArray::~VertexArray()
 	glDeleteVertexArrays(1, &m_RendererID);
 }
 
-void VertexArray::AddBuffer(const VertexBuffer& vertexBuffer)
+void VertexArray::AddBuffer(const VertexBuffer& vertexBuffer, const VertexBufferLayout& vertexBufferLayout)
 {
-	Bind();
-	vertexBuffer.Bind();
-	const auto& elements = m_VertexBufferLayout.GetElements();
+	//Bind();
+	//vertexBuffer.Bind();
+	const auto& elements = vertexBufferLayout.GetElements();
 	unsigned int offset = 0;
 	for (unsigned int i = 0; i < elements.size(); ++i)
 	{
 		const auto& element = elements[i];
 		glEnableVertexAttribArray(i);
 		glVertexAttribPointer(i, element.count, element.type,
-			element.normalized, m_VertexBufferLayout.GetStride(), (const void*) offset);
+			element.normalized, vertexBufferLayout.GetStride(), (const void*) offset);
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
 	}
 }
