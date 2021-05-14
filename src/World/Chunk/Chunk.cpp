@@ -2,6 +2,10 @@
 #include "Chunk.h"
 
 #include "../World.h"
+#include "../../Math/Frustum.h"
+#include "../../Physics/AABB.h"
+
+static constexpr inline AABB CHUNK_AABB = AABB({ 0, 0, 0 }, { Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH });
 
 Chunk::Chunk()
 	: m_Model(std::make_unique<Model<Vertex>>())
