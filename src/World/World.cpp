@@ -71,7 +71,7 @@ void World::UpdateChunks(const WorldPosition2D& playerPosition)
 		Chunk* chunk = GetChunk(chunkLocation);
 
 		if (chunk && chunk->m_ChunkState == ChunkState::Generated)
-			chunk->GenerateMesh(this, chunkLocation);
+			chunk->GenerateMesh(*this, chunkLocation);
 	});
 }
 
@@ -120,28 +120,28 @@ const Block* World::GetBlock(const WorldPosition& position) const
 	return (chunk) ? chunk->GetBlock(PosUtils::ConvertWorldPosToChunkPos(position)) : nullptr;
 }
 
-Block* World::GetHighestBlock(int x, int z)
+Block* World::GetHighestBlock(const WorldPosition2D& position)
 {
-	Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(x, z));
+	Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(position));
 
-	ChunkPosition chunkPosition = PosUtils::ConvertWorldPosToChunkPos({ x, 0, z });
-	return (chunk) ? chunk->GetHighestBlock(chunkPosition.x, chunkPosition.z) : nullptr;
+	ChunkPosition2D chunkPosition = PosUtils::ConvertWorldPosToChunkPos(position);
+	return (chunk) ? chunk->GetHighestBlock(chunkPosition) : nullptr;
 }
 
-const Block* World::GetHighestBlock(int x, int z) const
+const Block* World::GetHighestBlock(const WorldPosition2D& position) const
 {
-	const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(x, z));
+	const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(position));
 
-	ChunkPosition chunkPosition = PosUtils::ConvertWorldPosToChunkPos({ x, 0, z });
-	return (chunk) ? chunk->GetHighestBlock(chunkPosition.x, chunkPosition.z) : nullptr;
+	ChunkPosition2D chunkPosition = PosUtils::ConvertWorldPosToChunkPos(position);
+	return (chunk) ? chunk->GetHighestBlock(chunkPosition) : nullptr;
 }
 
-std::optional<uint8_t> World::GetHighestBlockYPos(int x, int z) const
+std::optional<uint8_t> World::GetHighestBlockYPos(const WorldPosition2D& position) const
 {
-	const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(x, z));
+	const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(position));
 
-	ChunkPosition chunkPosition = PosUtils::ConvertWorldPosToChunkPos({ x, 0, z });
-	return (chunk) ? chunk->GetHighestBlockYPos(chunkPosition.x, chunkPosition.z) : std::nullopt;
+	ChunkPosition2D chunkPosition = PosUtils::ConvertWorldPosToChunkPos(position);
+	return (chunk) ? chunk->GetHighestBlockYPos(chunkPosition) : std::nullopt;
 }
 
 void World::SetChunk(const ChunkLocation& position, Chunk&& chunk)
@@ -162,4 +162,25 @@ const Chunk* World::GetChunk(const ChunkLocation& position) const
 	const auto& found = m_Chunks.find(position);
 
 	return (found == m_Chunks.end()) ? nullptr : &found->second;
+}
+
+std::unordered_map<glm::ivec2, Chunk*> World::GetNeighboringChunks(const WorldPosition& position)
+{
+	std::unordered_map<glm::ivec2, Chunk*> chunks;
+
+	const ChunkLocation chunkLocation = PosUtils::ConvertWorldPosToChunkLoc(position);
+	const ChunkPosition chunkPosition = PosUtils::ConvertWorldPosToChunkPos(position);
+
+	auto emplaceChunk = [&](bool boolean, const glm::ivec2 chunkPos)
+	{
+		if (boolean)
+			chunks.emplace(chunkPos, GetChunk(chunkPos));
+	};
+
+	emplaceChunk(chunkPosition.x == 0, { chunkLocation.x - 1, chunkLocation.y });
+	emplaceChunk(chunkPosition.z == 0, { chunkLocation.x, chunkLocation.y - 1 });
+	emplaceChunk(chunkPosition.x == (Chunk::CHUNK_WIDTH - 1), { chunkLocation.x + 1, chunkLocation.y });
+	emplaceChunk(chunkPosition.z == (Chunk::CHUNK_DEPTH - 1), { chunkLocation.x, chunkLocation.y + 1 });
+
+	return chunks;
 }

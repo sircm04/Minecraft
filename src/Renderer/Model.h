@@ -28,6 +28,13 @@ public:
 		m_Index += mesh.vertices.size();
 	}
 
+	void Clear()
+	{
+		m_Mesh.vertices.clear();
+		m_Mesh.indices.clear();
+		m_Index = 0;
+	}
+
 	void Buffer(const VertexBufferLayout& layout)
 	{
 		std::lock_guard lock(m_Mutex);
@@ -35,8 +42,7 @@ public:
 		m_VertexBuffer = std::make_unique<VertexBuffer>(m_Mesh.vertices);
 		m_VertexArray->AddBuffer(*m_VertexBuffer, layout);
 		m_IndexBuffer = std::make_unique<IndexBuffer>(m_Mesh.indices);
-		m_Mesh.vertices.clear();
-		m_Mesh.indices.clear();
+		Clear();
 	}
 
 	void Render(int mode = GL_TRIANGLES) const

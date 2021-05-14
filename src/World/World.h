@@ -29,11 +29,12 @@ public:
 	void SetBlock(const WorldPosition& position, const Block& block);
 	Block* GetBlock(const WorldPosition& position);
 	const Block* GetBlock(const WorldPosition& position) const;
-	Block* GetHighestBlock(int x, int z);
-	const Block* GetHighestBlock(int x, int z) const;
-	std::optional<uint8_t> GetHighestBlockYPos(int x, int z) const;
+	Block* GetHighestBlock(const WorldPosition2D& position);
+	const Block* GetHighestBlock(const WorldPosition2D& position) const;
+	std::optional<uint8_t> GetHighestBlockYPos(const WorldPosition2D& position) const;
 
 	void SetChunk(const ChunkLocation& location, Chunk&& chunk);
 	Chunk* GetChunk(const ChunkLocation& location);
 	const Chunk* GetChunk(const ChunkLocation& location) const;
+	std::unordered_map<glm::ivec2, Chunk*> GetNeighboringChunks(const WorldPosition& position);
 };

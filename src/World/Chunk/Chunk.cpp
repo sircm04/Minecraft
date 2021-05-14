@@ -8,23 +8,23 @@
 static constexpr inline AABB CHUNK_AABB = AABB({ 0, 0, 0 }, { Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH });
 
 Chunk::Chunk()
-	: m_Model(std::make_unique<Model<Vertex>>())
+	: m_ChunkState(ChunkState::Ungenerated), m_Model(std::make_unique<Model<Vertex>>())
 {
 }
 
-void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLocation)
+void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& location)
 {
 	m_ChunkState = ChunkState::Ungenerated;
 
 	m_Blocks.reserve(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
 
-	const ChunkLocation realChunkLocation = (chunkLocation << 4);
+	const ChunkLocation realLocation = (location << 4);
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
 	{
 		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 		{
-			const double random = noise.noise0_1(((realChunkLocation.x + x) * 0.025), ((realChunkLocation.y + z) * 0.025)) * 50;
+			const double random = noise.noise0_1(((realLocation.x + x) * 0.025), ((realLocation.y + z) * 0.025)) * 50;
 			const uint8_t grassHeight = (static_cast<uint8_t>(Chunk::CHUNK_HEIGHT * 0.33f) >> 2) + random,
 				dirtHeight = (grassHeight - 3);
 
@@ -47,14 +47,14 @@ void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLo
 	m_ChunkState = ChunkState::Generated;
 }
 
-void Chunk::GenerateMesh(World* world, const ChunkLocation& chunkLocation)
+void Chunk::GenerateMesh(World& world, const ChunkLocation& location)
 {
-	m_ChunkState = ChunkState::Generated;
+	m_ChunkState = ChunkState::GeneratingMesh;
 
-	const ChunkLocation realChunkLocation = chunkLocation << 4;
+	const ChunkLocation realChunkLocation = location << 4;
 
-	const Chunk* frontChunk = world->GetChunk({ chunkLocation.x, chunkLocation.y + 1 });
-	const Chunk* rightChunk = world->GetChunk({ chunkLocation.x + 1, chunkLocation.y });
+	const Chunk* frontChunk = world.GetChunk({ location.x, location.y + 1 });
+	const Chunk* rightChunk = world.GetChunk({ location.x + 1, location.y });
 
 	for (uint8_t x = 0; x < Chunk::CHUNK_WIDTH; ++x)
 	{
@@ -191,34 +191,34 @@ const Block* Chunk::GetBlock(const ChunkPosition& position) const
 	return &m_Blocks[PositionToIndex(position)];
 }
 
-Block* Chunk::GetHighestBlock(uint8_t x, uint8_t z)
+Block* Chunk::GetHighestBlock(const ChunkPosition2D& position)
 {
 	for (uint8_t y = Chunk::CHUNK_HEIGHT - 1; y > 0; --y)
 	{
-		Block* block = GetBlock({ x, y, z });
-		if (block->type != BlockType::Air)
+		Block* block = GetBlock({ position.x, y, position.y });
+		if (block->GetBlockTypeData().isSolid)
 			return block;
 	}
 
 	return nullptr;
 }
 
-const Block* Chunk::GetHighestBlock(uint8_t x, uint8_t z) const
+const Block* Chunk::GetHighestBlock(const ChunkPosition2D& position) const
 {
 	for (uint8_t y = Chunk::CHUNK_HEIGHT - 1; y > 0; --y)
 	{
-		const Block* block = GetBlock({ x, y, z });
-		if (block->type != BlockType::Air)
+		const Block* block = GetBlock({ position.x, y, position.y });
+		if (block->GetBlockTypeData().isSolid)
 			return block;
 	}
 
 	return nullptr;
 }
 
-std::optional<uint8_t> Chunk::GetHighestBlockYPos(uint8_t x, uint8_t z) const
+std::optional<uint8_t> Chunk::GetHighestBlockYPos(const ChunkPosition2D& position) const
 {
 	for (uint8_t y = Chunk::CHUNK_HEIGHT - 1; y > 0; --y)
-		if (GetBlock({ x, y, z })->type != BlockType::Air)
+		if (GetBlock({ position.x, y, position.y })->GetBlockTypeData().isSolid)
 			return y;
 
 	return std::nullopt;

@@ -2,7 +2,8 @@
 
 typedef glm::vec3 WorldPosition;
 typedef glm::vec2 WorldPosition2D;
-typedef glm::ivec3 ChunkPosition;
+typedef glm::uvec3 ChunkPosition;
+typedef glm::uvec2 ChunkPosition2D;
 typedef glm::ivec2 ChunkLocation;
 
 namespace PosUtils
@@ -29,6 +30,14 @@ namespace PosUtils
 			(static_cast<int>(position.x) & 15),
 			position.y,
 			(static_cast<int>(position.z) & 15)
+		};
+	}
+
+	static ChunkPosition2D ConvertWorldPosToChunkPos(const WorldPosition2D& position)
+	{
+		return {
+			(static_cast<int>(position.x) & 15),
+			(static_cast<int>(position.y) & 15)
 		};
 	}
 

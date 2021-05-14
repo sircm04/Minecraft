@@ -12,6 +12,8 @@ private:
 public:
 	Camera m_Camera;
 
+	BlockType m_BlockInHand = static_cast<BlockType>(1);
+
 	Player(World& world);
 
 	void Input(GLFWwindow* window, double deltaTime);
@@ -20,4 +22,6 @@ public:
 	
 	virtual void Update(double deltaTime) override;
 	virtual void Render() const override;
+
+	const std::optional<WorldPosition> GetTargetBlockPosition(int max, bool place) const;
 };

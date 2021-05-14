@@ -11,6 +11,7 @@ enum class ChunkState : uint8_t
 {
 	Ungenerated,
 	Generated,
+	GeneratingMesh,
 	GeneratedMesh,
 	Buffered,
 	Removed
@@ -39,9 +40,9 @@ private:
 public:
 	Chunk();
 
-	void Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLocation);
+	void Generate(const siv::PerlinNoise& noise, const ChunkLocation& location);
 
-	void GenerateMesh(World* world, const ChunkLocation& chunkLocation);
+	void GenerateMesh(World& world, const ChunkLocation& location);
 	void AddFaceToMesh(const BlockFace& face, const WorldPosition& position, float texture);
 	void BufferMesh();
 
@@ -50,9 +51,9 @@ public:
 	void SetBlock(const ChunkPosition& position, const Block& block);
 	Block* GetBlock(const ChunkPosition& position);
 	const Block* GetBlock(const ChunkPosition& position) const;
-	Block* GetHighestBlock(uint8_t x, uint8_t z);
-	const Block* GetHighestBlock(uint8_t x, uint8_t z) const;
-	std::optional<uint8_t> GetHighestBlockYPos(uint8_t x, uint8_t z) const;
+	Block* GetHighestBlock(const ChunkPosition2D& position);
+	const Block* GetHighestBlock(const ChunkPosition2D& position) const;
+	std::optional<uint8_t> GetHighestBlockYPos(const ChunkPosition2D& position) const;
 
 	uint16_t PositionToIndex(const ChunkPosition& position) const;
 
