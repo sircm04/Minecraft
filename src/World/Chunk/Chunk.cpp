@@ -12,7 +12,7 @@ void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLo
 {
 	m_ChunkState = ChunkState::Ungenerated;
 
-	m_Blocks.resize(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
+	m_Blocks.reserve(Chunk::CHUNK_WIDTH * Chunk::CHUNK_HEIGHT * Chunk::CHUNK_DEPTH);
 
 	const ChunkLocation realChunkLocation = (chunkLocation << 4);
 
@@ -28,8 +28,14 @@ void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& chunkLo
 			{
 				if (y > grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Air });
-				else if (y <= grassHeight)
+				else if (y == grassHeight)
 					SetBlock({ x, y, z }, { BlockType::Grass });
+				else if (y >= dirtHeight)
+					SetBlock({ x, y, z }, { BlockType::Dirt });
+				else if (y > 0)
+					SetBlock({ x, y, z }, { BlockType::Stone });
+				else
+					SetBlock({ x, y, z }, { BlockType::Bedrock });
 			}
 		}
 	}

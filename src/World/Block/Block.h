@@ -63,6 +63,14 @@ enum class BlockType : uint8_t
 {
 	Air,
 	Grass,
+	Dirt,
+	Stone,
+	Cobblestone,
+	Bedrock,
+	Wood,
+	Log,
+	Leaves,
+	Glass,
 	Count
 };
 
@@ -78,7 +86,15 @@ struct BlockTypeData
 static constexpr BlockTypeData BLOCK_TYPE_DATA[] =
 {
 	{ "Air", std::nullopt, false, true },
-	{ "Grass", std::array { 0, 0, 0, 0, 1, 2 } }
+	{ "Grass", std::array { 0, 0, 0, 0, 1, 2 } },
+	{ "Dirt", std::array { 2, 2, 2, 2, 2, 2 } },
+	{ "Stone", std::array { 3, 3, 3, 3, 3, 3 } },
+	{ "Cobblestone", std::array { 4, 4, 4, 4, 4, 4 } },
+	{ "Bedrock", std::array { 5, 5, 5, 5, 5, 5 } },
+	{ "Wood", std::array { 6, 6, 6, 6, 6, 6 } },
+	{ "Log", std::array { 7, 7, 7, 7, 8, 8 } },
+	{ "Leaves", std::array { 9, 9, 9, 9, 9, 9 }, true, true },
+	{ "Glass", std::array { 10, 10, 10, 10, 10, 10 }, true, true }
 };
 
 static const BlockTypeData& GetBlockTypeData(BlockType blockType)

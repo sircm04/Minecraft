@@ -4,6 +4,7 @@
 #include "World/Chunk/Chunk.h"
 #include "Utils/Utils.h"
 
+#if _DEBUG
 void GLAPIENTRY
 MessageCallback(GLenum source,
     GLenum type,
@@ -12,6 +13,7 @@ MessageCallback(GLenum source,
     GLsizei length,
     const GLchar* message,
     const void* userParam);
+#endif
 
 Game::~Game()
 {
@@ -47,8 +49,10 @@ void Game::Initialize()
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
         throw std::runtime_error("glad failed to initialize!");
 
+#if _DEBUG
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
+#endif
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -69,23 +73,23 @@ void Game::Initialize()
 		auto game = static_cast<Game*>(glfwGetWindowUserPointer(window));
 
 		static float lastX = xpos, lastY = ypos;
-		static float pitch = glm::degrees(glm::asin(game->m_Camera.front.y)),
-			yaw = glm::degrees(std::atan2(game->m_Camera.front.z, game->m_Camera.front.x));
+		static float pitch = glm::degrees(glm::asin(game->m_Player.m_Camera.front.y)),
+			yaw = glm::degrees(std::atan2(game->m_Player.m_Camera.front.z, game->m_Player.m_Camera.front.x));
 
 		float xoffset = (float) xpos - lastX;
 		float yoffset = lastY - (float) ypos;
 		lastX = (float) xpos;
 		lastY = (float) ypos;
 
-		xoffset *= game->m_Camera.sensitivity;
-		yoffset *= game->m_Camera.sensitivity;
+		xoffset *= game->m_Player.m_Camera.sensitivity;
+		yoffset *= game->m_Player.m_Camera.sensitivity;
 
 		yaw += xoffset;
 		pitch += yoffset;
 
 		pitch = std::clamp(pitch, -89.9f, 89.9f);
 		
-		game->m_Camera.front = glm::normalize(glm::vec3 {
+		game->m_Player.m_Camera.front = glm::normalize(glm::vec3 {
 			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 			sin(glm::radians(pitch)),
 			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
@@ -102,9 +106,10 @@ void Game::Initialize()
 
     m_WorldTexture = std::make_unique<ArrayTexture>(std::vector<std::string>
     {
-        "res/images/grass_side.png",
-        "res/images/grass_top.png",
-        "res/images/dirt.png"
+        "res/images/grass_side.png", "res/images/grass_top.png", "res/images/dirt.png",
+		"res/images/stone.png", "res/images/cobblestone.png", "res/images/bedrock.png",
+		"res/images/wood.png", "res/images/log_side.png", "res/images/log_top.png",
+		"res/images/leaves.png", "res/images/glass.png"
     }, 16, 16);
 
     constexpr glm::vec3 skyColor = {
@@ -115,7 +120,7 @@ void Game::Initialize()
 
     glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
-    m_Camera.position = { 8, 52, 8 };
+    m_Player.m_Position = { 8, 52, 8 };
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
@@ -130,7 +135,7 @@ void Game::MainLoop()
     {
         while (!glfwWindowShouldClose(m_Window))
         {
-            m_World.Update({ m_Camera.position.x, m_Camera.position.z });
+            m_World.Update({ m_Player.m_Position.x, m_Player.m_Position.z });
         }
     });
 
@@ -175,24 +180,7 @@ void Game::Update(float deltaTime)
 {
     glfwPollEvents();
 
-    auto front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z });
-    static const float speed = 2.0f * deltaTime;
-
-    if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-        m_Camera.position += speed * front;
-    if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
-        m_Camera.position -= speed * front;
-    if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-        m_Camera.position -= glm::normalize(glm::cross(front, m_Camera.up)) * speed;
-    if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-        m_Camera.position += glm::normalize(glm::cross(front, m_Camera.up)) * speed;
-    if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        m_Camera.position += speed * m_Camera.up;
-    if (glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        m_Camera.position -= speed * m_Camera.up;
-
-    //std::cout << "POSITION: " << m_Camera.position.x << ", " << m_Camera.position.y << ", " << m_Camera.position.z << std::endl;
-    //std::cout << "DIRECTION: " << m_Camera.front.x << ", " << m_Camera.front.y << ", " << m_Camera.front.z << std::endl;
+    m_Player.Input(m_Window, deltaTime);
 }
 
 void Game::Render()
@@ -205,8 +193,8 @@ void Game::Render()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.front, m_Camera.up);
-    const glm::mat4 projection = glm::perspective(glm::radians(m_Camera.fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 5000.0f);
+    const glm::mat4 view = glm::lookAt(m_Player.m_Position, m_Player.m_Position + m_Player.m_Camera.front, m_Player.m_Camera.up);
+    const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 5000.0f);
 
     m_WorldTexture->Bind();
     m_WorldShader->Bind();
@@ -217,6 +205,7 @@ void Game::Render()
     glfwSwapBuffers(m_Window);
 }
 
+#if _DEBUG
 void GLAPIENTRY
 MessageCallback(GLenum source,
     GLenum type,
@@ -230,3 +219,4 @@ MessageCallback(GLenum source,
         (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
         type, severity, message);
 }
+#endif
