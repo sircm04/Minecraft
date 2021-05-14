@@ -8,7 +8,7 @@ layout(location = 3) in uint a_AO;
 out vec3 s_Position;
 out vec3 s_TexCoord;
 out vec3 s_Normal;
-flat out unsigned int s_AO;
+flat out uint s_AO;
 
 uniform mat4 projection, view;
 
