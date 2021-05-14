@@ -75,7 +75,7 @@ void World::UpdateChunks(const WorldPosition2D& playerPosition)
 	});
 }
 
-void World::RenderChunks()
+void World::RenderChunks(const ViewFrustum& frustum)
 {
 	auto it = m_Chunks.begin();
 	while (it != m_Chunks.end())
@@ -91,7 +91,7 @@ void World::RenderChunks()
 		case ChunkState::GeneratedMesh:
 			it->second.BufferMesh();
 		case ChunkState::Buffered:
-			it->second.Render();
+			it->second.Render(frustum, it->first);
 		}
 
 		++it;

@@ -41,3 +41,31 @@ bool AABB::IntersectsBlocks(const World& world, const WorldPosition& position) c
 
 	return false;
 }
+
+WorldPosition AABB::getVN(const WorldPosition& normal, const WorldPosition& position) const
+{
+	WorldPosition res = GetRelativeMinimum(position);
+
+	if (normal.x < 0)
+		res.x += m_Max.x;
+	if (normal.y < 0)
+		res.y += m_Max.y;
+	if (normal.z < 0)
+		res.z += m_Max.z;
+
+	return res;
+}
+
+WorldPosition AABB::getVP(const WorldPosition& normal, const WorldPosition& position) const
+{
+	WorldPosition res = GetRelativeMinimum(position);
+
+	if (normal.x > 0)
+		res.x += m_Max.x;
+	if (normal.y > 0)
+		res.y += m_Max.y;
+	if (normal.z > 0)
+		res.z += m_Max.z;
+
+	return res;
+}

@@ -3,6 +3,8 @@
 #include "../../Positions.h"
 #include "../Block/Block.h"
 #include "../../Renderer/Model.h"
+#include "../../Math/Frustum.h"
+#include "../../Physics/AABB.h"
 
 class World;
 
@@ -18,7 +20,8 @@ enum class ChunkState : uint8_t
 class Chunk
 {
 public:
-	static constexpr uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16;
+	static constexpr inline uint8_t CHUNK_WIDTH = 16, CHUNK_HEIGHT = 255, CHUNK_DEPTH = 16;
+	static constexpr inline AABB CHUNK_AABB = AABB({ 0, 0, 0 }, { CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH });
 
 	ChunkState m_ChunkState;
 
@@ -44,7 +47,7 @@ public:
 	void AddFaceToMesh(const BlockFace& face, const WorldPosition& position, float texture);
 	void BufferMesh();
 
-	void Render();
+	void Render(const ViewFrustum& frustum, const ChunkLocation& location);
 
 	void SetBlock(const ChunkPosition& position, const Block& block);
 	Block* GetBlock(const ChunkPosition& position);

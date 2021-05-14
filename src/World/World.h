@@ -24,7 +24,7 @@ public:
 	void Update(const WorldPosition2D& playerPosition);
 	void UpdateChunks(const WorldPosition2D& playerPosition);
 
-	void RenderChunks();
+	void RenderChunks(const ViewFrustum& frustum);
 
 	void SetBlock(const WorldPosition& position, const Block& block);
 	Block* GetBlock(const WorldPosition& position);

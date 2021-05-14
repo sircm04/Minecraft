@@ -22,4 +22,6 @@ public:
 	WorldPosition GetMaximum() const { return m_Max; }
 	WorldPosition GetRelativeMinimum(const WorldPosition& position) const { return m_Min + position; }
 	WorldPosition GetRelativeMaximum(const WorldPosition& position) const { return m_Max + position; }
+	WorldPosition getVN(const WorldPosition& normal, const WorldPosition& position) const;
+	WorldPosition getVP(const WorldPosition& normal, const WorldPosition& position) const;
 };

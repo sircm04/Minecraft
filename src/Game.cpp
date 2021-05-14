@@ -3,6 +3,7 @@
 
 #include "World/Chunk/Chunk.h"
 #include "Utils/Utils.h"
+#include "Math/Frustum.h"
 
 #if _DEBUG
 void GLAPIENTRY
@@ -196,11 +197,14 @@ void Game::Render()
     const glm::mat4 view = glm::lookAt(m_Player.m_Position, m_Player.m_Position + m_Player.m_Camera.front, m_Player.m_Camera.up);
     const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 5000.0f);
 
+    static ViewFrustum frustum;
+    frustum.Update(projection * view);
+
     m_WorldTexture->Bind();
     m_WorldShader->Bind();
     m_WorldShader->SetMat4("view", view);
     m_WorldShader->SetMat4("projection", projection);
-    m_World.RenderChunks();
+    m_World.RenderChunks(frustum);
 
     glfwSwapBuffers(m_Window);
 }

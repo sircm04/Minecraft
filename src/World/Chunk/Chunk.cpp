@@ -66,10 +66,10 @@ void Chunk::GenerateMesh(World* world, const ChunkLocation& chunkLocation)
 				const glm::ivec3 frontBlockPosition = { x, y, z + 1 };
 				const glm::ivec3 rightBlockPosition = { x + 1, y, z };
 				const glm::ivec3 topBlockPosition = { x, y + 1, z };
-				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH - static_cast<uint8_t>(1)) ? GetBlock(frontBlockPosition) : frontChunk->GetBlock({
-					frontBlockPosition.x, frontBlockPosition.y, 0 }));
-				const Block* rightBlock = (xNotFinished ? GetBlock(rightBlockPosition) : rightChunk->GetBlock({
-					0, rightBlockPosition.y, rightBlockPosition.z }));
+				const Block* frontBlock = ((z != Chunk::CHUNK_DEPTH - static_cast<uint8_t>(1)) ? GetBlock(frontBlockPosition)
+					: frontChunk->GetBlock({ frontBlockPosition.x, frontBlockPosition.y, 0 }));
+				const Block* rightBlock = (xNotFinished ? GetBlock(rightBlockPosition)
+					: rightChunk->GetBlock({ 0, rightBlockPosition.y, rightBlockPosition.z }));
 				const Block* topBlock = GetBlock(topBlockPosition);
 
 				if (blockData.isSolid)
@@ -157,9 +157,12 @@ void Chunk::BufferMesh()
 	m_ChunkState = ChunkState::Buffered;
 }
 
-void Chunk::Render()
+void Chunk::Render(const ViewFrustum& frustum, const ChunkLocation& location)
 {
-	m_Model->Render();
+	const ChunkLocation realLocation = location << 4;
+
+	if (frustum.IsAABBInFrustum(CHUNK_AABB, { realLocation.x, 0, realLocation.y }))
+		m_Model->Render();
 }
 
 void Chunk::SetBlock(const ChunkPosition& position, const Block& block)
