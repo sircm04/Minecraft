@@ -81,13 +81,13 @@ void Chunk::GenerateMesh(World& world, const ChunkLocation& location)
 					const glm::ivec3& realPosition = glm::ivec3 { x + realChunkLocation.x, y, z + realChunkLocation.y };
 
 					if (frontBlock->GetBlockTypeData().isTransparent)
-						AddFaceToMesh(world, FRONT_BLOCK_FACE, realPosition, blockData.faces.value()[0]);
+						AddFaceToMesh(world, FRONT_BLOCK_FACE, realPosition, blockData.faces.value()[0], !blockData.isTransparent);
 
  					if (rightBlock->GetBlockTypeData().isTransparent)
-						AddFaceToMesh(world, RIGHT_BLOCK_FACE, realPosition, blockData.faces.value()[2]);
+						AddFaceToMesh(world, RIGHT_BLOCK_FACE, realPosition, blockData.faces.value()[2], !blockData.isTransparent);
 
 					if (!topBlock || topBlock->GetBlockTypeData().isTransparent)
-						AddFaceToMesh(world, TOP_BLOCK_FACE, realPosition, blockData.faces.value()[4]);
+						AddFaceToMesh(world, TOP_BLOCK_FACE, realPosition, blockData.faces.value()[4], !blockData.isTransparent);
 				}
 
 				if (blockData.isTransparent)
@@ -96,21 +96,21 @@ void Chunk::GenerateMesh(World& world, const ChunkLocation& location)
 					{
 						const auto& frontBlockData = frontBlock->GetBlockTypeData();
 						AddFaceToMesh(world, BACK_BLOCK_FACE, { frontBlockPosition.x + realChunkLocation.x, frontBlockPosition.y, frontBlockPosition.z + realChunkLocation.y },
-							frontBlockData.faces.value()[1]);
+							frontBlockData.faces.value()[1], !frontBlockData.isTransparent);
 					}
 
 					if (rightBlock->GetBlockTypeData().isSolid)
 					{
 						const auto& rightBlockData = rightBlock->GetBlockTypeData();
 						AddFaceToMesh(world, LEFT_BLOCK_FACE, { rightBlockPosition.x + realChunkLocation.x, rightBlockPosition.y, rightBlockPosition.z + realChunkLocation.y },
-							rightBlockData.faces.value()[3]);
+							rightBlockData.faces.value()[3], !rightBlockData.isTransparent);
 					}
 
 					if (topBlock && topBlock->GetBlockTypeData().isSolid)
 					{
 						const auto& topBlockData = topBlock->GetBlockTypeData();
 						AddFaceToMesh(world, BOTTOM_BLOCK_FACE, { topBlockPosition.x + realChunkLocation.x, topBlockPosition.y, topBlockPosition.z + realChunkLocation.y },
-							topBlockData.faces.value()[5]);
+							topBlockData.faces.value()[5], !topBlockData.isTransparent);
 					}
 				}
 			}
