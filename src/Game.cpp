@@ -200,8 +200,8 @@ void Game::Render()
 
     glm::mat4 bobbingMatrix = glm::inverse(glm::translate(glm::mat4(1.0f),
     {
-        cos(m_Player.m_NumSteps) * 0.1f,
-        (-abs(sin(m_Player.m_NumSteps)) * 2 + 1.0f) * 0.0625f,
+        cos(m_Player.m_NumSteps) * 0.0625f,
+        (-abs(sin(m_Player.m_NumSteps)) * 2 + 1.0f) * 0.1f,
         0
     }));
 
