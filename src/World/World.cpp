@@ -171,7 +171,7 @@ std::unordered_map<glm::ivec2, Chunk*> World::GetNeighboringChunks(const WorldPo
 	const ChunkLocation chunkLocation = PosUtils::ConvertWorldPosToChunkLoc(position);
 	const ChunkPosition chunkPosition = PosUtils::ConvertWorldPosToChunkPos(position);
 
-	auto emplaceChunk = [&](bool boolean, const glm::ivec2 chunkPos)
+	auto emplaceChunk = [&](bool boolean, const glm::ivec2& chunkPos)
 	{
 		if (boolean)
 			chunks.emplace(chunkPos, GetChunk(chunkPos));
@@ -181,6 +181,11 @@ std::unordered_map<glm::ivec2, Chunk*> World::GetNeighboringChunks(const WorldPo
 	emplaceChunk(chunkPosition.z == 0, { chunkLocation.x, chunkLocation.y - 1 });
 	emplaceChunk(chunkPosition.x == (Chunk::CHUNK_WIDTH - 1), { chunkLocation.x + 1, chunkLocation.y });
 	emplaceChunk(chunkPosition.z == (Chunk::CHUNK_DEPTH - 1), { chunkLocation.x, chunkLocation.y + 1 });
+
+	emplaceChunk(chunkPosition.x == 0 && chunkPosition.z == 0, { chunkLocation.x - 1, chunkLocation.y - 1 });
+	emplaceChunk(chunkPosition.x == (Chunk::CHUNK_WIDTH - 1) && chunkPosition.z == (Chunk::CHUNK_DEPTH - 1), { chunkLocation.x + 1, chunkLocation.y + 1 });
+	emplaceChunk(chunkPosition.x == 0 && chunkPosition.z == (Chunk::CHUNK_DEPTH - 1), { chunkLocation.x - 1, chunkLocation.y + 1 });
+	emplaceChunk(chunkPosition.z == 0 && chunkPosition.x == (Chunk::CHUNK_WIDTH - 1), { chunkLocation.x + 1, chunkLocation.y - 1 });
 
 	return chunks;
 }

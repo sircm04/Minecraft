@@ -11,8 +11,13 @@ private:
 
 public:
 	Camera m_Camera;
+	glm::vec3 m_Velocity;
 
-	BlockType m_BlockInHand = static_cast<BlockType>(1);
+	bool m_IsFlying = true;
+
+	float m_NumSteps;
+
+	BlockType m_BlockInHand;
 
 	Player(World& world);
 
@@ -24,4 +29,5 @@ public:
 	virtual void Render() const override;
 
 	const std::optional<WorldPosition> GetTargetBlockPosition(int max, bool place) const;
+	bool Player::IsStandingOnGround() const;
 };

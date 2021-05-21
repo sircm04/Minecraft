@@ -1,8 +1,9 @@
 #include "../../pch.h"
 #include "Player.h"
+#include "../../Game.h"
 
 Player::Player(World& world)
-	: Mob(world, WorldPosition(), 10, 10, 15.0f)
+	: Mob(world, WorldPosition(), 10, 10, 7.0f), m_NumSteps(0), m_BlockInHand(static_cast<BlockType>(1))
 {
 }
 
@@ -45,35 +46,57 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		}
 	}
 
+	for (uint8_t i = 1; i < maxBlockTypeKeys; ++i)
+		if (glfwGetKey(window, GLFW_KEY_0 + i) == GLFW_PRESS)
+			m_BlockInHand = static_cast<BlockType>(i);
+
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && clickDelay[1] == 0)
+	{
+		m_IsFlying = !m_IsFlying;
+		if (m_IsFlying)
+			m_Velocity.y = 0.0f;
+		clickDelay[1] = 0.2f;
+	}
+
+    WorldPosition front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z }),
+        position = m_Position;
+    const float speed = m_Speed * deltaTime;
+	bool onGround = IsStandingOnGround();
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		position += speed * front;
+		if (!m_IsFlying && onGround)
+			m_NumSteps += speed * 0.75f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		position -= speed * front;
+		if (!m_IsFlying && onGround)
+			m_NumSteps -= speed * 0.75f;
+	}
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        position -= glm::normalize(glm::cross(front, m_Camera.up)) * speed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        position += glm::normalize(glm::cross(front, m_Camera.up)) * speed;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		if (m_IsFlying)
+			position += speed * m_Camera.up;
+		else if (IsStandingOnGround())
+			m_Velocity.y = 7.5f;
+	}
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && m_IsFlying)
+        position -= speed * m_Camera.up;
+
+    Move(position);
+
 	for (auto& delay : clickDelay) {
 		if (delay > 0)
 			delay -= 1 * deltaTime;
 		if (delay < 0)
 			delay = 0;
 	}
-
-	for (uint8_t i = 1; i < maxBlockTypeKeys; ++i)
-		if (glfwGetKey(window, GLFW_KEY_0 + i) == GLFW_PRESS)
-			m_BlockInHand = static_cast<BlockType>(i);
-
-    WorldPosition front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z }),
-        position = m_Position;
-    const float speed = m_Speed * deltaTime;
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        position += speed * front;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        position -= speed * front;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        position -= glm::normalize(glm::cross(front, m_Camera.up)) * speed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        position += glm::normalize(glm::cross(front, m_Camera.up)) * speed;
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        position += speed * m_Camera.up;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        position -= speed * m_Camera.up;
-
-    Move(position);
 }
 
 void Player::Move(const WorldPosition& position)
@@ -87,12 +110,38 @@ void Player::Move(const WorldPosition& position)
     if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y, position.z }))
         m_Position.z = position.z;
 
-    if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, position.y, m_Position.z }))
-        m_Position.y = position.y;
+	if (!PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, position.y, m_Position.z }))
+	{
+		m_Position.y = position.y;
+	}
+	else
+	{
+		if (position.y < m_Position.y)
+			m_Position.y = floor(m_Position.y) + 0.5f;
+		else
+			m_Velocity.y = 0.0f;
+	}
 }
 
 void Player::Update(double deltaTime)
 {
+	if (!IsStandingOnGround())
+	{
+		if (!m_IsFlying)
+			m_Velocity.y -= Game::GRAVITY * deltaTime;
+	}
+	else if (m_Velocity.y < 0.0f)
+	{
+		m_Velocity.y = 0.0f;
+	}
+
+	glm::vec3 velocity = {
+		m_Velocity.x * deltaTime,
+		m_Velocity.y * deltaTime,
+		m_Velocity.z * deltaTime
+	};
+
+	Move(m_Position + velocity);
 }
 
 void Player::Render() const
@@ -135,4 +184,12 @@ const std::optional<WorldPosition> Player::GetTargetBlockPosition(int max, bool 
 	}
 
 	return std::nullopt;
+}
+
+bool Player::IsStandingOnGround() const
+{
+	const Chunk* chunk = m_World.GetChunk(PosUtils::ConvertWorldPosToChunkLoc(m_Position));
+
+	return chunk && chunk->m_ChunkState >= ChunkState::Generated
+		&& PLAYER_AABB.IntersectsBlocks(m_World, { m_Position.x, m_Position.y - 0.01f, m_Position.z });
 }

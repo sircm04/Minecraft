@@ -185,6 +185,7 @@ void Game::Update(float deltaTime)
     glfwPollEvents();
 
     m_Player.Input(m_Window, deltaTime);
+    m_Player.Update(deltaTime);
 }
 
 void Game::Render()
@@ -197,7 +198,14 @@ void Game::Render()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const glm::mat4 view = glm::lookAt(m_Player.m_Position, m_Player.m_Position + m_Player.m_Camera.front, m_Player.m_Camera.up);
+    glm::mat4 bobbingMatrix = glm::inverse(glm::translate(glm::mat4(1.0f),
+    {
+        cos(m_Player.m_NumSteps) * 0.1f,
+        (-abs(sin(m_Player.m_NumSteps)) * 2 + 1.0f) * 0.0625f,
+        0
+    }));
+
+    const glm::mat4 view = bobbingMatrix * glm::lookAt(m_Player.m_Position, m_Player.m_Position + m_Player.m_Camera.front, m_Player.m_Camera.up);
     const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 5000.0f);
 
     static ViewFrustum frustum;

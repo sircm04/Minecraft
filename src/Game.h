@@ -8,6 +8,9 @@
 
 class Game
 {
+public:
+	static constexpr inline float GRAVITY = 24.0f;
+
 private:
 	GLFWwindow* m_Window;
 	const uint32_t WINDOW_WIDTH = 800, WINDOW_HEIGHT = 600;

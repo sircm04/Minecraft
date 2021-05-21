@@ -25,7 +25,7 @@ void Chunk::Generate(const siv::PerlinNoise& noise, const ChunkLocation& locatio
 		for (uint8_t z = 0; z < Chunk::CHUNK_DEPTH; ++z)
 		{
 			const double random = noise.noise0_1(((realLocation.x + x) * 0.025), ((realLocation.y + z) * 0.025)) * 50;
-			const uint8_t grassHeight = (static_cast<uint8_t>(Chunk::CHUNK_HEIGHT * 0.33f) >> 2) + random,
+			const uint8_t grassHeight = (static_cast<uint8_t>(Chunk::CHUNK_HEIGHT * 0.33f) >> 2) + 10,
 				dirtHeight = (grassHeight - 3);
 
 			for (uint8_t y = 0; y < Chunk::CHUNK_HEIGHT; ++y)
