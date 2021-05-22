@@ -8,7 +8,7 @@
 #include "VertexBufferLayout.h"
 #include "Mesh.h"
 
-template<typename T>
+template <typename T>
 class Model
 {
 public:

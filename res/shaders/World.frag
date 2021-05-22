@@ -11,5 +11,5 @@ uniform sampler2DArray image;
 
 void main()
 {
-	color = texture(image, s_TexCoord) * vec4(vec3((s_AO + 1u) * 0.25), 1.0);
+	color = texture(image, s_TexCoord) * vec4(vec3((s_AO + 1) * 0.25), 1.0);
 }

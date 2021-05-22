@@ -1,6 +1,8 @@
 #include "../../pch.h"
 #include "Player.h"
+
 #include "../../Game.h"
+#include "../../Utils/Utils.h"
 
 Player::Player(World& world)
 	: Mob(world, WorldPosition(), 10, 10, 7.0f), m_NumSteps(0), m_BlockInHand(static_cast<BlockType>(1))
@@ -60,34 +62,57 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 
     WorldPosition front = glm::normalize(glm::vec3 { m_Camera.front.x, 0.0f, m_Camera.front.z }),
         position = m_Position;
-    const float speed = m_Speed * deltaTime;
-	bool onGround = IsStandingOnGround();
 
+    float speed = m_Speed * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		speed = m_Speed * deltaTime * 1.5f;
+
+	bool moved = false, onGround = IsStandingOnGround();
+
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+        position -= glm::normalize(glm::cross(front, m_Camera.up)) * speed;
+		m_WalkingDirection = Direction::West;
+		moved = true;
+	}
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+        position += glm::normalize(glm::cross(front, m_Camera.up)) * speed;
+		m_WalkingDirection = Direction::East;
+		moved = true;
+	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		position += speed * front;
-		if (!m_IsFlying && onGround)
-			m_NumSteps += speed * 0.75f;
+		m_WalkingDirection = Direction::North;
+		moved = true;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		position -= speed * front;
-		if (!m_IsFlying && onGround)
-			m_NumSteps -= speed * 0.75f;
+		m_WalkingDirection = Direction::South;
+		moved = true;
 	}
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        position -= glm::normalize(glm::cross(front, m_Camera.up)) * speed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        position += glm::normalize(glm::cross(front, m_Camera.up)) * speed;
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		if (m_IsFlying)
 			position += speed * m_Camera.up;
-		else if (IsStandingOnGround())
+		else if (onGround)
 			m_Velocity.y = 7.5f;
 	}
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && m_IsFlying)
         position -= speed * m_Camera.up;
+
+	if (moved)
+	{
+		if (!m_IsFlying && onGround)
+			m_NumSteps += speed * 0.75f;
+	}
+	else
+	{
+		float zeroPoint = round(m_NumSteps / 3.14) * 3.14;
+		m_NumSteps = Utils::ApproachValue<float>(m_NumSteps, zeroPoint, speed * 0.75f);
+	}
 
     Move(position);
 
@@ -97,6 +122,8 @@ void Player::Input(GLFWwindow* window, double deltaTime)
 		if (delay < 0)
 			delay = 0;
 	}
+
+	m_NumSteps = fmod(m_NumSteps, 3.14 * 2);
 }
 
 void Player::Move(const WorldPosition& position)

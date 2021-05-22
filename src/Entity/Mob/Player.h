@@ -3,6 +3,7 @@
 #include "Mob.h"
 #include "../../Camera.h"
 #include "../../Physics/AABB.h"
+#include "../../Direction.h"
 
 class Player : public Mob
 {
@@ -15,6 +16,7 @@ public:
 
 	bool m_IsFlying = true;
 
+	Direction m_WalkingDirection;
 	float m_NumSteps;
 
 	BlockType m_BlockInHand;

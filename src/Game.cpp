@@ -198,12 +198,15 @@ void Game::Render()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 bobbingMatrix = glm::inverse(glm::translate(glm::mat4(1.0f),
-    {
-        cos(m_Player.m_NumSteps) * 0.0625f,
-        (-abs(sin(m_Player.m_NumSteps)) * 2 + 1.0f) * 0.1f,
-        0
-    }));
+    glm::vec3 bobbingOffset = { 0.0f, 0.0f, 0.0f };
+    float bobbingHorizontal = -sin(m_Player.m_NumSteps) * 0.075f;
+    if (static_cast<uint8_t>(m_Player.m_WalkingDirection) < 2)
+        bobbingOffset.x = bobbingHorizontal;
+    else
+        bobbingOffset.y = bobbingHorizontal;
+
+    glm::mat4 bobbingMatrix = glm::inverse(glm::rotate(glm::translate(glm::mat4(1.0f), bobbingOffset),
+        (-abs(sin(m_Player.m_NumSteps)) * 2 + 1.0f) * 0.005f, { 1.0f, 0.0f, 0.0f }));
 
     const glm::mat4 view = bobbingMatrix * glm::lookAt(m_Player.m_Position, m_Player.m_Position + m_Player.m_Camera.front, m_Player.m_Camera.up);
     const glm::mat4 projection = glm::perspective(glm::radians(m_Player.m_Camera.fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 5000.0f);

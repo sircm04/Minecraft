@@ -2,7 +2,7 @@
 
 #include "../pch.h"
 
-template<typename T>
+template <typename T>
 struct Mesh
 {
 	std::vector<T> vertices;
