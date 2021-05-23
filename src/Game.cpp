@@ -16,18 +16,18 @@ MessageCallback(GLenum source,
     const void* userParam);
 #endif
 
+Game::Game(int width, int height)
+{
+    Initialize(width, height);
+    Run();
+}
+
 Game::~Game()
 {
     Cleanup();
 }
 
-void Game::Run()
-{
-    Initialize();
-    MainLoop();
-}
-
-void Game::Initialize()
+void Game::Initialize(int width, int height)
 {
     if (!glfwInit())
         throw std::exception("glfw failed to initialize!");
@@ -38,7 +38,7 @@ void Game::Initialize()
 
     glfwWindowHint(GLFW_SAMPLES, 16);
 
-    m_Window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Minecraft", nullptr, nullptr);
+    m_Window = glfwCreateWindow(width, height, "Minecraft", nullptr, nullptr);
     if (!m_Window)
     {
         glfwTerminate();
@@ -98,7 +98,7 @@ void Game::Initialize()
 	});
 
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    glfwSetWindowPos(m_Window, (mode->width - WINDOW_WIDTH) * 0.5f, (mode->height - WINDOW_HEIGHT) * 0.5f);
+    glfwSetWindowPos(m_Window, (mode->width - width) * 0.5f, (mode->height - height) * 0.5f);
 
     m_WorldShader = std::make_unique<Shader>(std::unordered_map<unsigned int, std::string> {
         { GL_VERTEX_SHADER, Utils::ReadFile("res/shaders/World.vert") },
@@ -133,7 +133,7 @@ void Game::Initialize()
     glFrontFace(GL_CW);
 }
 
-void Game::MainLoop()
+void Game::Run()
 {
     m_Thread = std::thread([&]()
     {

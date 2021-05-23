@@ -2,7 +2,7 @@
 
 #include "../../Positions.h"
 #include "../Block/Block.h"
-#include "../../Renderer/Model.h"
+#include "../../Renderer/Mesh.h"
 
 class ViewFrustum;
 class World;
@@ -66,7 +66,7 @@ private:
 	}
 
 	std::vector<Block> m_Blocks;
-	std::unique_ptr<Model<Vertex>> m_Model;
+	std::unique_ptr<Mesh<Vertex>> m_Mesh;
 
 public:
 	Chunk();

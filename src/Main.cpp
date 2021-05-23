@@ -2,6 +2,5 @@
 
 int main()
 {
-    Game game;
-    game.Run();
+    Game game(800, 600);
 }

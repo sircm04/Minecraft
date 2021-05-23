@@ -13,7 +13,6 @@ public:
 
 private:
 	GLFWwindow* m_Window;
-	const uint32_t WINDOW_WIDTH = 800, WINDOW_HEIGHT = 600;
 
 	World m_World;
 	Player m_Player = Player(m_World);
@@ -23,12 +22,11 @@ private:
 	std::unique_ptr<ArrayTexture> m_WorldTexture;
 
 public:
+	Game(int width, int height);
 	~Game();
 
+	void Initialize(int width, int height);
 	void Run();
-
-	void Initialize();
-	void MainLoop();
 	void Cleanup();
 
 	void Update(float deltaTime);

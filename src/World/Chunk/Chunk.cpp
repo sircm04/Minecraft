@@ -8,7 +8,7 @@
 static constexpr inline AABB CHUNK_AABB = AABB({ 0, 0, 0 }, { Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH });
 
 Chunk::Chunk()
-	: m_ChunkState(ChunkState::Ungenerated), m_Model(std::make_unique<Model<Vertex>>())
+	: m_ChunkState(ChunkState::Ungenerated), m_Mesh(std::make_unique<Mesh<Vertex>>())
 {
 }
 
@@ -122,7 +122,7 @@ void Chunk::GenerateMesh(World& world, const ChunkLocation& location)
 
 void Chunk::AddFaceToMesh(World& world, const BlockFace& face, const WorldPosition& position, float texture, bool doAO)
 {
-	Mesh<Vertex> mesh;
+	MeshData<Vertex> data;
 
 	for (uint8_t i = 0; i < 4; ++i)
 	{
@@ -143,7 +143,7 @@ void Chunk::AddFaceToMesh(World& world, const BlockFace& face, const WorldPositi
 			ao = CalculateVertexAO(side1Bool, side2Bool, cornerBool);
 		}
 		
-		mesh.vertices.emplace_back(Vertex
+		data.vertices.emplace_back(Vertex
 		{
 			vertex.position + position,
 			{
@@ -156,11 +156,11 @@ void Chunk::AddFaceToMesh(World& world, const BlockFace& face, const WorldPositi
 		});
 	}
 	
-	mesh.indices = {
+	data.indices = {
 		0, 1, 2, 2, 3, 0
 	};
 
-	m_Model->AddMesh(mesh);
+	m_Mesh->AddData(data);
 }
 
 void Chunk::BufferMesh()
@@ -171,7 +171,7 @@ void Chunk::BufferMesh()
 	layout.Push<float>(3);
 	layout.Push<unsigned int>(1);
 
-	m_Model->Buffer(layout);
+	m_Mesh->Buffer(layout);
 
 	m_ChunkState = ChunkState::Buffered;
 }
@@ -181,7 +181,7 @@ void Chunk::Render(const ViewFrustum& frustum, const ChunkLocation& location)
 	const ChunkLocation realLocation = location << 4;
 
 	if (frustum.IsAABBInFrustum(CHUNK_AABB, { realLocation.x, 0, realLocation.y }))
-		m_Model->Render();
+		m_Mesh->Render();
 }
 
 void Chunk::SetBlock(const ChunkPosition& position, const Block& block)
