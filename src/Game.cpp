@@ -184,7 +184,7 @@ void Game::Run()
             fps = static_cast<double>(nbFrames / fpsTimeAccumulator);
 
             std::stringstream ss;
-            ss << "Minecraft [" << fps << " FPS]";
+            ss << TITLE << " v" << VERSION_MAJOR << "." << VERSION_MINOR << " [" << fps << " FPS]";
 
             glfwSetWindowTitle(m_Window, ss.str().c_str());
 
