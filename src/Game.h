@@ -6,6 +6,10 @@
 #include "Renderer/Shader.h"
 #include "Renderer/ArrayTexture.h"
 
+#define TITLE "Minecraft"
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 0
+
 class Game
 {
 private:

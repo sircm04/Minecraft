@@ -1,7 +1,6 @@
 #include "../pch.h"
 #include "World.h"
 #include "../Entity/Mob/Player.h"
-#include "../Game.h"
 
 World::World()
 	: m_NoiseRandom(std::mt19937(std::random_device{}())),

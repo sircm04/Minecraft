@@ -4,6 +4,7 @@
 #include "World/Chunk/Chunk.h"
 #include "Utils/Utils.h"
 #include "Math/Frustum.h"
+#include "Utils/Log.h"
 
 #if _DEBUG
 void GLAPIENTRY
@@ -41,7 +42,7 @@ void Game::Initialize(int width, int height)
 
     glfwWindowHint(GLFW_SAMPLES, 16);
 
-    m_Window = glfwCreateWindow(width, height, "Minecraft", nullptr, nullptr);
+    m_Window = glfwCreateWindow(width, height, TITLE, nullptr, nullptr);
     if (!m_Window)
     {
         glfwTerminate();
@@ -58,7 +59,8 @@ void Game::Initialize(int width, int height)
     glDebugMessageCallback(MessageCallback, 0);
 #endif
 
-    std::cout << glGetString(GL_VERSION) << std::endl;
+    INFO(TITLE << " v" << VERSION_MAJOR << "." << VERSION_MINOR);
+    INFO("OpenGL v" << glGetString(GL_VERSION));
 
     glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 

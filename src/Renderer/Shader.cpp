@@ -1,6 +1,8 @@
 #include "../pch.h"
 #include "Shader.h"
 
+#include "../Utils/Log.h"
+
 Shader::Shader(const std::unordered_map<unsigned int, std::string>& shaders)
 	: m_Shaders(shaders)
 {
@@ -36,8 +38,7 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 		char* message = new char[length];
 		glGetShaderInfoLog(id, length, &length, message);
-		std::cout << "Failed to compile " << GetShaderType(type) << " shader!" << std::endl;
-		std::cout << message << std::endl;
+		WARN("Failed to compile " + GetShaderType(type) + " shader!\n" + message);
 		delete[] message;
 		glDeleteShader(id);
 		return 0;
@@ -77,7 +78,7 @@ unsigned int Shader::GetUniformLocation(const std::string& name) const
 
 	int location = glGetUniformLocation(m_RendererID, name.c_str());
 	if (location == -1)
-		std::cout << "Warning: uniform '" << name.c_str() << "' doesn't exist!" << std::endl;
+		WARN("Uniform '" << name.c_str() << "' doesn't exist!");
 
 	m_UniformLocationCache[name] = location;
 	return location;
