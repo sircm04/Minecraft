@@ -17,7 +17,7 @@ public:
 	GLFWwindow* m_Window;
 
 	World m_World;
-	Player m_Player = Player(m_World);
+	Player m_Player = Player(m_World, { 8.5f, 50.0f, 8.5f });
 
 	std::vector<std::thread> m_Threads;
 	std::unique_ptr<Shader> m_WorldShader;

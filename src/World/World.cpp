@@ -68,16 +68,6 @@ void World::UpdateChunks(const WorldPosition2D& playerPosition)
 		}
 	});
 
-	static bool firstLoad = true;
-	if (firstLoad)
-	{
-		const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(playerPosition));
-		const ChunkPosition2D position = PosUtils::ConvertWorldPosToChunkPos(playerPosition);
-		Game::Instance()->m_Player.m_Position.y = static_cast<float>(*chunk->GetHighestBlockYPos(position))
-			+ 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y);
-		firstLoad = false;
-	}
-
 	loop(World::RENDER_DISTANCE, [&](const ChunkLocation& chunkLocation)
 	{
 		Chunk* chunk = GetChunk(chunkLocation);

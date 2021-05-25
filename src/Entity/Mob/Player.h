@@ -20,7 +20,7 @@ public:
 
 	BlockType m_BlockInHand;
 
-	Player(World& world);
+	Player(World& world, const WorldPosition& position);
 
 	void Input(GLFWwindow* window, double deltaTime);
 

@@ -4,8 +4,8 @@
 #include "../../Game.h"
 #include "../../Utils/Utils.h"
 
-Player::Player(World& world)
-	: Mob(world, WorldPosition(), 10, 10, 7.0f), m_NumSteps(0), m_BlockInHand(static_cast<BlockType>(1))
+Player::Player(World& world, const WorldPosition& position)
+	: Mob(world, position, 10, 10, 7.0f), m_NumSteps(0), m_BlockInHand(static_cast<BlockType>(1)), m_Velocity({ 0.0f, 0.0f, 0.0f })
 {
 }
 
