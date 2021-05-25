@@ -8,10 +8,12 @@
 
 class Game
 {
+private:
+	static Game* INSTANCE;
+
 public:
 	static constexpr inline float GRAVITY = 24.0f;
 
-private:
 	GLFWwindow* m_Window;
 
 	World m_World;
@@ -21,7 +23,6 @@ private:
 	std::unique_ptr<Shader> m_WorldShader;
 	std::unique_ptr<ArrayTexture> m_WorldTexture;
 
-public:
 	Game(int width, int height);
 	~Game();
 
@@ -31,4 +32,6 @@ public:
 
 	void Update(float deltaTime);
 	void Render();
+
+	static Game* Instance() { return INSTANCE; }
 };

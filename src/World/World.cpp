@@ -1,5 +1,7 @@
 #include "../pch.h"
 #include "World.h"
+#include "../Entity/Mob/Player.h"
+#include "../Game.h"
 
 World::World()
 	: m_NoiseRandom(std::mt19937(std::random_device{}())),
@@ -65,6 +67,16 @@ void World::UpdateChunks(const WorldPosition2D& playerPosition)
 			SetChunk(chunkLocation, std::move(chunk));
 		}
 	});
+
+	static bool firstLoad = true;
+	if (firstLoad)
+	{
+		const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(Game::Instance()->m_Player.m_Position));
+		const ChunkPosition position = PosUtils::ConvertWorldPosToChunkPos(Game::Instance()->m_Player.m_Position);
+		Game::Instance()->m_Player.m_Position.y = static_cast<float>(*chunk->GetHighestBlockYPos({ position.x, position.z }))
+			+ 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y);
+		firstLoad = false;
+	}
 
 	loop(World::RENDER_DISTANCE, [&](const ChunkLocation& chunkLocation)
 	{

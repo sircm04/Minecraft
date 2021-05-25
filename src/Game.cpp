@@ -16,8 +16,11 @@ MessageCallback(GLenum source,
     const void* userParam);
 #endif
 
+Game* Game::INSTANCE;
+
 Game::Game(int width, int height)
 {
+    INSTANCE = this;
     Initialize(width, height);
     Run();
 }
@@ -122,29 +125,6 @@ void Game::Initialize(int width, int height)
     glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
     m_Player.m_Position = { 8.5f, 50.0f, 8.5f };
-
-    m_Threads.emplace_back([&]()
-    {
-        const ChunkLocation location = PosUtils::ConvertWorldPosToChunkLoc(m_Player.m_Position);
-        const Chunk* chunk;
-
-        while (true)
-        {
-            if (m_World.IsChunkLoaded(location))
-            {
-                chunk = m_World.GetChunk(location);
-
-                while (true)
-                    if (chunk->m_ChunkState == ChunkState::Generated)
-                        goto end;
-            }
-        }
-        end:
-
-        const ChunkPosition position = PosUtils::ConvertWorldPosToChunkPos(m_Player.m_Position);
-        m_Player.m_Position.y = static_cast<float>(*chunk->GetHighestBlockYPos({ position.x, position.z }))
-            + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y);
-    });
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
