@@ -13,7 +13,6 @@ public:
 	~VertexArray();
 
 	void AddBuffer(const VertexBuffer& vertexBuffer, const VertexBufferLayout& vertexBufferLayout);
-	void Render(int mode = GL_TRIANGLES) const;
 
 	void Bind() const;
 	void Unbind() const;

@@ -7,14 +7,13 @@
 
 class Player : public Mob
 {
-private:
+public:
 	static constexpr inline AABB PLAYER_AABB = AABB({ -0.25f, -1.5f, -0.25f }, { 0.25f, 0.25f, 0.25f });
 
-public:
 	Camera m_Camera;
 	glm::vec3 m_Velocity;
 
-	bool m_IsFlying = true;
+	bool m_IsFlying;
 
 	Direction m_WalkingDirection;
 	float m_NumSteps;

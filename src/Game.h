@@ -17,7 +17,7 @@ private:
 	World m_World;
 	Player m_Player = Player(m_World);
 
-	std::thread m_Thread;
+	std::vector<std::thread> m_Threads;
 	std::unique_ptr<Shader> m_WorldShader;
 	std::unique_ptr<ArrayTexture> m_WorldTexture;
 

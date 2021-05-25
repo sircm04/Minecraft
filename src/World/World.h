@@ -37,4 +37,5 @@ public:
 	Chunk* GetChunk(const ChunkLocation& location);
 	const Chunk* GetChunk(const ChunkLocation& location) const;
 	std::unordered_map<glm::ivec2, Chunk*> GetNeighboringChunks(const WorldPosition& position);
+	bool IsChunkLoaded(const ChunkLocation& location);
 };

@@ -6,7 +6,7 @@ private:
 	unsigned int m_RendererID;
 
 public:
-	template<typename T>
+	template <typename T>
 	VertexBuffer(const std::vector<T>& data)
 		: m_RendererID(0)
 	{

@@ -2,7 +2,7 @@
 #include "ArrayTexture.h"
 
 ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width, int height)
-	: m_RendererID(0), m_FilePaths(filePaths), m_LocalBuffer(nullptr), m_Width(width), m_Height(height)
+	: m_RendererID(0), m_Width(width), m_Height(height)
 {
 	stbi_set_flip_vertically_on_load(1);
 
@@ -21,14 +21,14 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width,
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
 		5,
 		GL_RGBA8,
-		m_Width, m_Height,
-		(GLsizei) filePaths.size()
+		width, height,
+		static_cast<GLsizei>(filePaths.size())
 	);
 
-	int w, h, BPP;
+	int w, h;
 	for (int i = 0; i < filePaths.size(); ++i)
 	{
-		unsigned char* image = stbi_load(filePaths[i].c_str(), &w, &h, &BPP, 4);
+		unsigned char* image = stbi_load(filePaths[i].c_str(), &w, &h, nullptr, 4);
 
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,
@@ -40,8 +40,6 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filePaths, int width,
 	}
 
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-
-	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
 ArrayTexture::~ArrayTexture()

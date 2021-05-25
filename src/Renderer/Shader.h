@@ -25,5 +25,5 @@ private:
 	unsigned int CompileShader(unsigned int type, const std::string& source);
 	const std::string GetShaderType(unsigned int id);
 
-	int GetUniformLocation(const std::string& name) const;
+	unsigned int GetUniformLocation(const std::string& name) const;
 };

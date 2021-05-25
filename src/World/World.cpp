@@ -189,3 +189,9 @@ std::unordered_map<glm::ivec2, Chunk*> World::GetNeighboringChunks(const WorldPo
 
 	return chunks;
 }
+
+bool World::IsChunkLoaded(const ChunkLocation& location)
+{
+	std::lock_guard lock(m_Mutex);
+	return m_Chunks.find(location) != m_Chunks.end();
+}

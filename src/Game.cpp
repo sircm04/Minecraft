@@ -77,10 +77,10 @@ void Game::Initialize(int width, int height)
 		static float pitch = glm::degrees(glm::asin(game->m_Player.m_Camera.front.y)),
 			yaw = glm::degrees(std::atan2(game->m_Player.m_Camera.front.z, game->m_Player.m_Camera.front.x));
 
-		float xoffset = (float) xpos - lastX;
-		float yoffset = lastY - (float) ypos;
-		lastX = (float) xpos;
-		lastY = (float) ypos;
+		float xoffset = static_cast<float>(xpos - lastX);
+		float yoffset = lastY - static_cast<float>(ypos);
+		lastX = static_cast<float>(xpos);
+		lastY = static_cast<float>(ypos);
 
 		xoffset *= game->m_Player.m_Camera.sensitivity;
 		yoffset *= game->m_Player.m_Camera.sensitivity;
@@ -121,7 +121,30 @@ void Game::Initialize(int width, int height)
 
     glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
 
-    m_Player.m_Position = { 8.5f, 52, 8.5f };
+    m_Player.m_Position = { 8.5f, 50.0f, 8.5f };
+
+    m_Threads.emplace_back([&]()
+    {
+        const ChunkLocation location = PosUtils::ConvertWorldPosToChunkLoc(m_Player.m_Position);
+        const Chunk* chunk;
+
+        while (true)
+        {
+            if (m_World.IsChunkLoaded(location))
+            {
+                chunk = m_World.GetChunk(location);
+
+                while (true)
+                    if (chunk->m_ChunkState == ChunkState::Generated)
+                        goto end;
+            }
+        }
+        end:
+
+        const ChunkPosition position = PosUtils::ConvertWorldPosToChunkPos(m_Player.m_Position);
+        m_Player.m_Position.y = static_cast<float>(*chunk->GetHighestBlockYPos({ position.x, position.z }))
+            + 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y);
+    });
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
@@ -135,7 +158,7 @@ void Game::Initialize(int width, int height)
 
 void Game::Run()
 {
-    m_Thread = std::thread([&]()
+    m_Threads.emplace_back([&]()
     {
         while (!glfwWindowShouldClose(m_Window))
         {
@@ -155,7 +178,7 @@ void Game::Run()
         fpsTimeAccumulator += deltaTime;
         nbFrames++;
         if (fpsTimeAccumulator >= 1.0) {
-            fps = (double) nbFrames / fpsTimeAccumulator;
+            fps = static_cast<double>(nbFrames / fpsTimeAccumulator);
 
             std::stringstream ss;
             ss << "Minecraft [" << fps << " FPS]";
@@ -173,7 +196,8 @@ void Game::Run()
 
 void Game::Cleanup()
 {
-    m_Thread.join();
+    for (auto& thread : m_Threads)
+        thread.join();
 
     glfwDestroyWindow(m_Window);
 
