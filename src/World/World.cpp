@@ -71,9 +71,9 @@ void World::UpdateChunks(const WorldPosition2D& playerPosition)
 	static bool firstLoad = true;
 	if (firstLoad)
 	{
-		const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(Game::Instance()->m_Player.m_Position));
-		const ChunkPosition position = PosUtils::ConvertWorldPosToChunkPos(Game::Instance()->m_Player.m_Position);
-		Game::Instance()->m_Player.m_Position.y = static_cast<float>(*chunk->GetHighestBlockYPos({ position.x, position.z }))
+		const Chunk* chunk = GetChunk(PosUtils::ConvertWorldPosToChunkLoc(playerPosition));
+		const ChunkPosition2D position = PosUtils::ConvertWorldPosToChunkPos(playerPosition);
+		Game::Instance()->m_Player.m_Position.y = static_cast<float>(*chunk->GetHighestBlockYPos(position))
 			+ 1.0f + abs(Player::PLAYER_AABB.GetMinimum().y);
 		firstLoad = false;
 	}
